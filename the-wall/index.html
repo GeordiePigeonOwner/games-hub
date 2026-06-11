@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Wall — Games Creation</title>
+<style>
+  :root {
+    --bg-0: #02050f;
+    --bg-1: #07142c;
+    --wall-deep: #050b1d;
+    --wall-mid: #0a1f4a;
+    --wall-edge: #1d3a7a;
+    --neon: #5ec8ff;
+    --neon-soft: #6ac9ff;
+    --neon-dim: rgba(94,200,255,0.35);
+    --gold: #ffd77a;
+    --green: #3ed598;
+    --red: #ff4757;
+    --text: #eef1ff;
+    --text-dim: rgba(238,241,255,0.65);
+    --text-faint: rgba(238,241,255,0.4);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(ellipse 70% 40% at 50% 0%, rgba(94,200,255,0.18), transparent 60%),
+      linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 28px;
+    border-bottom: 1px solid rgba(94,200,255,0.15);
+    background: rgba(5,11,29,0.7);
+    backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .back-link {
+    color: var(--neon-soft);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 12px;
+    border: 1px solid rgba(94,200,255,0.25);
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .back-link:hover { background: rgba(94,200,255,0.1); border-color: var(--neon); }
+  h1 {
+    margin: 0;
+    font-family: 'Syncopate', 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #fff, #5ec8ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 24px rgba(94,200,255,0.5);
+  }
+  .header-spacer { flex: 1; }
+  .money-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--gold);
+    text-shadow: 0 0 16px rgba(255,215,122,0.55);
+    padding: 6px 18px;
+    border: 1px solid rgba(255,215,122,0.3);
+    border-radius: 8px;
+    background: rgba(255,215,122,0.05);
+    min-width: 200px;
+    text-align: right;
+  }
+  .money-display.flash-up { animation: flashGreen 0.6s ease; }
+  .money-display.flash-down { animation: flashRed 0.6s ease; }
+  @keyframes flashGreen {
+    0%, 100% { color: var(--gold); }
+    50% { color: var(--green); text-shadow: 0 0 30px rgba(62,213,152,0.9); transform: scale(1.05); }
+  }
+  @keyframes flashRed {
+    0%, 100% { color: var(--gold); }
+    50% { color: var(--red); text-shadow: 0 0 30px rgba(255,71,87,0.9); transform: scale(1.05); }
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 28px;
+    padding: 28px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .wall-stage {
+    position: relative;
+    border-radius: 16px;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 50%, rgba(94,200,255,0.08), transparent 70%),
+      linear-gradient(180deg, var(--wall-mid) 0%, var(--wall-deep) 100%);
+    border: 2px solid rgba(94,200,255,0.18);
+    overflow: hidden;
+    box-shadow:
+      0 0 60px rgba(94,200,255,0.15),
+      inset 0 0 80px rgba(0,0,0,0.5);
+  }
+  .wall-stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to right, rgba(94,200,255,0.04) 1px, transparent 1px) 0 0 / 60px 60px,
+      linear-gradient(to bottom, rgba(94,200,255,0.04) 1px, transparent 1px) 0 0 / 60px 60px;
+    pointer-events: none;
+  }
+  canvas { display: block; width: 100%; height: auto; max-height: 75vh; }
+
+  /* Sidebar */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .panel {
+    background: rgba(10,31,74,0.55);
+    border: 1px solid rgba(94,200,255,0.18);
+    border-radius: 12px;
+    padding: 18px;
+    backdrop-filter: blur(6px);
+  }
+  .panel-label {
+    font-family: 'Syncopate', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--neon-soft);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    opacity: 0.85;
+  }
+  .round-name {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .round-desc { color: var(--text-dim); font-size: 13px; margin: 0; line-height: 1.5; }
+
+  .balls-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .ball-pip {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a3a7a, #0a1f4a);
+    border: 1.5px solid rgba(94,200,255,0.3);
+  }
+  .ball-pip.spent { opacity: 0.25; }
+  .ball-pip.green { background: radial-gradient(circle at 35% 35%, #6effc0, #1f7e51); border-color: rgba(62,213,152,0.7); box-shadow: 0 0 12px rgba(62,213,152,0.6); }
+  .ball-pip.red { background: radial-gradient(circle at 35% 35%, #ff8d96, #8e1c25); border-color: rgba(255,71,87,0.7); box-shadow: 0 0 12px rgba(255,71,87,0.6); }
+
+  .question-panel { min-height: 180px; }
+  .question-text {
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 0 0 14px;
+    font-weight: 500;
+  }
+  .options { display: grid; gap: 8px; }
+  .option-btn {
+    text-align: left;
+    background: rgba(94,200,255,0.06);
+    border: 1px solid rgba(94,200,255,0.2);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .option-btn:hover:not(:disabled) {
+    background: rgba(94,200,255,0.12);
+    border-color: var(--neon);
+    transform: translateX(2px);
+  }
+  .option-btn:disabled { cursor: default; opacity: 0.6; }
+  .option-btn.correct { background: rgba(62,213,152,0.2); border-color: var(--green); color: var(--green); }
+  .option-btn.wrong { background: rgba(255,71,87,0.2); border-color: var(--red); color: var(--red); }
+
+  .controls { display: flex; flex-direction: column; gap: 10px; }
+  .btn-primary {
+    background: linear-gradient(135deg, #5ec8ff, #3a7fd0);
+    color: #02050f;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(94,200,255,0.35);
+    transition: all 0.15s;
+  }
+  .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(94,200,255,0.5); }
+  .btn-primary:active:not(:disabled) { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid rgba(94,200,255,0.2);
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--neon); }
+
+  .position-hint {
+    font-size: 12px;
+    color: var(--text-faint);
+    text-align: center;
+    margin-top: 6px;
+  }
+
+  /* Modal overlays */
+  .modal-back {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(2,5,15,0.85);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-back.show { display: flex; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: linear-gradient(180deg, var(--wall-mid), var(--wall-deep));
+    border: 1px solid rgba(94,200,255,0.3);
+    border-radius: 16px;
+    padding: 36px;
+    max-width: 540px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+  }
+  .modal h2 {
+    margin: 0 0 12px;
+    font-family: 'Syncopate', sans-serif;
+    font-size: 24px;
+    letter-spacing: 0.2em;
+    background: linear-gradient(180deg, #fff, var(--neon));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .modal p { color: var(--text-dim); margin: 0 0 22px; line-height: 1.6; }
+  .modal .big-money {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(255,215,122,0.6);
+    margin: 14px 0 24px;
+  }
+  .modal .big-money.negative { color: var(--red); text-shadow: 0 0 30px rgba(255,71,87,0.6); }
+  .modal .rounds-summary { text-align: left; margin: 16px 0; }
+  .modal .rounds-summary > div {
+    display: flex; justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed rgba(94,200,255,0.15);
+  }
+  .modal .rounds-summary > div:last-child { border: none; font-weight: 700; }
+
+  /* Toast / banner */
+  .banner {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    background: rgba(2,5,15,0.85);
+    border: 1px solid rgba(94,200,255,0.4);
+    color: var(--neon-soft);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 10;
+  }
+  .banner.show { opacity: 1; }
+  .banner.green { color: var(--green); border-color: rgba(62,213,152,0.6); }
+  .banner.red { color: var(--red); border-color: rgba(255,71,87,0.6); }
+
+  /* Loading dots */
+  .dots::after {
+    content: '...';
+    display: inline-block;
+    animation: dots 1.4s steps(4, end) infinite;
+    width: 18px;
+    text-align: left;
+  }
+  @keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80%, 100% { content: '...'; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="back-link" href="../index.html">&larr; Hub</a>
+  <h1>The Wall</h1>
+  <div class="header-spacer"></div>
+  <div class="money-display" id="moneyDisplay">$0</div>
+</header>
+
+<div class="layout">
+  <div class="wall-stage">
+    <div class="banner" id="banner"></div>
+    <canvas id="wall" width="600" height="760"></canvas>
+  </div>
+
+  <aside class="sidebar">
+    <div class="panel">
+      <div class="panel-label">Round</div>
+      <h2 class="round-name" id="roundName">Press Start</h2>
+      <p class="round-desc" id="roundDesc">Three rounds. Drop balls down a wall of pegs. Green balls add money. Red balls subtract. Bigger slots, bigger swings.</p>
+      <div class="balls-row" id="ballsRow"></div>
+    </div>
+
+    <div class="panel question-panel" id="questionPanel" style="display:none;">
+      <div class="panel-label">Question</div>
+      <p class="question-text" id="questionText"></p>
+      <div class="options" id="options"></div>
+    </div>
+
+    <div class="panel controls">
+      <button class="btn-primary" id="primaryBtn">Start Game</button>
+      <div class="position-hint" id="positionHint">Click anywhere on the wall to choose where to drop the ball, then press Drop.</div>
+    </div>
+  </aside>
+</div>
+
+<div class="modal-back" id="modalBack">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+"use strict";
+
+// ============================================================
+// Game configuration
+// ============================================================
+const W = 600, H = 760;
+const PEG_R = 5;
+const BALL_R = 11;
+const GRAVITY = 0.32;
+const ELASTICITY = 0.55;
+const FRICTION = 0.995;
+const PEG_RANDOM = 0.6;
+
+const SLOTS = 9;
+const SLOT_WIDTH = W / SLOTS;
+const SLOT_Y = H - 90;
+const SLOT_BOTTOM = H - 6;
+
+const TOP_ZONE = 70;
+const PEG_ROWS = 13;
+const ROW_SPACING = (SLOT_Y - TOP_ZONE - 30) / PEG_ROWS;
+
+// Build pegs in offset rows
+const pegs = [];
+for (let r = 0; r < PEG_ROWS; r++) {
+  const y = TOP_ZONE + 30 + r * ROW_SPACING;
+  const isOdd = r % 2 === 1;
+  const count = isOdd ? SLOTS - 1 : SLOTS;
+  const startX = isOdd ? SLOT_WIDTH : SLOT_WIDTH / 2;
+  for (let i = 0; i < count; i++) {
+    pegs.push({ x: startX + i * SLOT_WIDTH, y: y, glow: 0 });
+  }
+}
+
+// Round configuration — slot values for each round
+const ROUND_VALUES = {
+  1: [1, 10, 100, 1000, 10000, 1000, 100, 10, 1],                                  // Free Fall
+  2: [100, 1000, 10000, 50000, 250000, 50000, 10000, 1000, 100],                   // Trivia
+  3: [1000, 10000, 100000, 500000, 1000000, 500000, 100000, 10000, 1000]           // Final
+};
+
+const ROUNDS = [
+  { id: 1, name: "Round 1: Free Fall", desc: "Three free balls. All values count for you. Pick your spot, watch it fall.", balls: 3, trivia: false },
+  { id: 2, name: "Round 2: Trivia",    desc: "Answer the question. Right = green ball (added). Wrong = red ball (subtracted).", balls: 5, trivia: true },
+  { id: 3, name: "Round 3: The Final", desc: "Two final drops. Slot values reach £1,000,000. One wrong move and it's gone.", balls: 2, trivia: true }
+];
+
+// ============================================================
+// Trivia bank
+// ============================================================
+const TRIVIA = [
+  { q: "Which planet is closest to the Sun?", o: ["Venus","Mercury","Mars","Earth"], a: 1 },
+  { q: "Who painted the Mona Lisa?", o: ["Michelangelo","Raphael","Leonardo da Vinci","Donatello"], a: 2 },
+  { q: "What is the largest mammal on Earth?", o: ["African elephant","Blue whale","Giraffe","Polar bear"], a: 1 },
+  { q: "How many sides does a hexagon have?", o: ["5","6","7","8"], a: 1 },
+  { q: "What is the capital of Australia?", o: ["Sydney","Melbourne","Canberra","Perth"], a: 2 },
+  { q: "Which element has the chemical symbol 'Au'?", o: ["Silver","Gold","Aluminium","Argon"], a: 1 },
+  { q: "Who wrote the play 'Romeo and Juliet'?", o: ["Charles Dickens","William Shakespeare","Jane Austen","Oscar Wilde"], a: 1 },
+  { q: "What year did the Titanic sink?", o: ["1905","1912","1918","1923"], a: 1 },
+  { q: "Which country gifted the Statue of Liberty to the USA?", o: ["Spain","Italy","France","UK"], a: 2 },
+  { q: "What is the largest ocean on Earth?", o: ["Atlantic","Indian","Arctic","Pacific"], a: 3 },
+  { q: "How many strings does a standard guitar have?", o: ["4","5","6","7"], a: 2 },
+  { q: "Which gas do plants primarily absorb for photosynthesis?", o: ["Oxygen","Nitrogen","Carbon dioxide","Hydrogen"], a: 2 },
+  { q: "What is the smallest prime number?", o: ["0","1","2","3"], a: 2 },
+  { q: "Who developed the theory of general relativity?", o: ["Isaac Newton","Albert Einstein","Galileo Galilei","Stephen Hawking"], a: 1 },
+  { q: "What is the currency of Japan?", o: ["Yuan","Won","Yen","Ringgit"], a: 2 },
+  { q: "Which Beatle was assassinated in 1980?", o: ["Paul McCartney","George Harrison","John Lennon","Ringo Starr"], a: 2 },
+  { q: "What is the longest river in the world?", o: ["Amazon","Nile","Yangtze","Mississippi"], a: 1 },
+  { q: "Which sport is played at Wimbledon?", o: ["Cricket","Tennis","Rugby","Golf"], a: 1 },
+  { q: "What is the boiling point of water in Celsius?", o: ["90","95","100","110"], a: 2 },
+  { q: "Who painted the ceiling of the Sistine Chapel?", o: ["Leonardo da Vinci","Raphael","Michelangelo","Caravaggio"], a: 2 },
+  { q: "Which country has the most natural lakes?", o: ["USA","Russia","Canada","Finland"], a: 2 },
+  { q: "What is the hardest natural substance on Earth?", o: ["Gold","Iron","Diamond","Quartz"], a: 2 },
+  { q: "In what year did World War II end?", o: ["1943","1945","1947","1950"], a: 1 },
+  { q: "Which is the only mammal capable of true flight?", o: ["Flying squirrel","Bat","Sugar glider","Colugo"], a: 1 },
+  { q: "What is the smallest country in the world by area?", o: ["Monaco","Vatican City","San Marino","Liechtenstein"], a: 1 },
+  { q: "Which planet is known as the Red Planet?", o: ["Venus","Mars","Jupiter","Saturn"], a: 1 },
+  { q: "Who is the author of '1984'?", o: ["Aldous Huxley","Ray Bradbury","George Orwell","Kurt Vonnegut"], a: 2 },
+  { q: "How many bones are in the adult human body?", o: ["186","206","226","246"], a: 1 },
+  { q: "What is the official language of Brazil?", o: ["Spanish","Portuguese","English","French"], a: 1 },
+  { q: "Which instrument has 88 keys?", o: ["Organ","Harpsichord","Piano","Accordion"], a: 2 },
+  { q: "Which sea creature has three hearts?", o: ["Shark","Octopus","Dolphin","Squid"], a: 1 },
+  { q: "What does 'www' stand for?", o: ["World Web Width","World Wide Web","Wide World Web","Web Wide World"], a: 1 },
+  { q: "What is the capital of Canada?", o: ["Toronto","Montreal","Ottawa","Vancouver"], a: 2 },
+  { q: "Which Italian city is famous for canals?", o: ["Rome","Florence","Venice","Milan"], a: 2 },
+];
+function shuffle(a) { const x = a.slice(); for (let i = x.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [x[i], x[j]] = [x[j], x[i]]; } return x; }
+
+// ============================================================
+// Game state
+// ============================================================
+const state = {
+  total: 0,
+  roundIndex: 0,       // 0..2 (rounds 1..3)
+  ballsLeft: 0,
+  ball: null,          // active ball
+  ballHistory: [],     // per-round colours
+  roundTotals: [0,0,0],
+  dropX: W / 2,
+  ballColor: null,     // 'green' or 'red' (pending drop)
+  triviaQueue: [],
+  currentQuestion: null,
+  phase: 'idle'        // 'idle' | 'aim' | 'question' | 'dropping' | 'between' | 'over'
+};
+
+// ============================================================
+// Canvas rendering
+// ============================================================
+const canvas = document.getElementById('wall');
+const ctx = canvas.getContext('2d');
+
+function currentRound() { return ROUNDS[state.roundIndex]; }
+function currentValues() { return ROUND_VALUES[currentRound().id]; }
+
+function drawWall() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Background sheen
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#0c2353');
+  bg.addColorStop(1, '#05102a');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Drop zone indicator
+  ctx.fillStyle = 'rgba(94,200,255,0.04)';
+  ctx.fillRect(0, 0, W, TOP_ZONE);
+  ctx.strokeStyle = 'rgba(94,200,255,0.18)';
+  ctx.setLineDash([4, 6]);
+  ctx.beginPath();
+  ctx.moveTo(0, TOP_ZONE);
+  ctx.lineTo(W, TOP_ZONE);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Pegs (with optional glow on hit)
+  for (const p of pegs) {
+    const glow = Math.max(0, p.glow);
+    if (glow > 0) {
+      ctx.shadowColor = 'rgba(94,200,255,' + (0.6 * glow).toFixed(3) + ')';
+      ctx.shadowBlur = 20 * glow;
+    }
+    const grad = ctx.createRadialGradient(p.x - 1.5, p.y - 1.5, 0.5, p.x, p.y, PEG_R + glow * 3);
+    grad.addColorStop(0, '#e6f5ff');
+    grad.addColorStop(0.4, '#5ec8ff');
+    grad.addColorStop(1, '#1a4a8a');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, PEG_R + glow * 1.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    p.glow *= 0.88;
+  }
+
+  // Slot dividers
+  const values = currentValues();
+  for (let i = 0; i <= SLOTS; i++) {
+    const x = i * SLOT_WIDTH;
+    ctx.strokeStyle = 'rgba(94,200,255,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x, SLOT_Y);
+    ctx.lineTo(x, SLOT_BOTTOM);
+    ctx.stroke();
+  }
+
+  // Slot panels and values
+  for (let i = 0; i < SLOTS; i++) {
+    const x = i * SLOT_WIDTH;
+    const v = values[i];
+    // Background gradient based on value
+    const max = Math.max(...values);
+    const intensity = v / max;
+    const g = ctx.createLinearGradient(x, SLOT_Y, x, SLOT_BOTTOM);
+    g.addColorStop(0, 'rgba(94,200,255,' + (0.08 + intensity * 0.18) + ')');
+    g.addColorStop(1, 'rgba(255,215,122,' + (intensity * 0.18) + ')');
+    ctx.fillStyle = g;
+    ctx.fillRect(x + 1, SLOT_Y + 1, SLOT_WIDTH - 2, SLOT_BOTTOM - SLOT_Y - 2);
+    // Value text
+    ctx.fillStyle = intensity > 0.6 ? '#ffd77a' : '#cfeaff';
+    ctx.font = '700 ' + (v >= 1000000 ? '13px' : v >= 100000 ? '13px' : '14px') + ' JetBrains Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(formatMoney(v, true), x + SLOT_WIDTH / 2, SLOT_Y + (SLOT_BOTTOM - SLOT_Y) / 2);
+  }
+
+  // Top border
+  ctx.strokeStyle = 'rgba(94,200,255,0.5)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, SLOT_Y);
+  ctx.lineTo(W, SLOT_Y);
+  ctx.stroke();
+
+  // Aim indicator
+  if (state.phase === 'aim') {
+    const x = state.dropX;
+    const color = state.ballColor === 'red' ? '#ff4757' : (state.ballColor === 'green' ? '#3ed598' : '#5ec8ff');
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.moveTo(x, TOP_ZONE);
+    ctx.lineTo(x, SLOT_Y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Arrow
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x, 50);
+    ctx.lineTo(x - 10, 30);
+    ctx.lineTo(x + 10, 30);
+    ctx.closePath();
+    ctx.fill();
+    // Preview ball
+    ctx.beginPath();
+    ctx.arc(x, 18, BALL_R, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.6;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // Ball
+  if (state.ball) {
+    const b = state.ball;
+    const grad = ctx.createRadialGradient(b.x - 3, b.y - 3, 1, b.x, b.y, BALL_R + 2);
+    if (b.color === 'green') {
+      grad.addColorStop(0, '#c6ffd9');
+      grad.addColorStop(0.5, '#3ed598');
+      grad.addColorStop(1, '#1c6a45');
+    } else {
+      grad.addColorStop(0, '#ffd6da');
+      grad.addColorStop(0.5, '#ff4757');
+      grad.addColorStop(1, '#7a1822');
+    }
+    ctx.shadowColor = b.color === 'green' ? 'rgba(62,213,152,0.7)' : 'rgba(255,71,87,0.7)';
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, BALL_R, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+function formatMoney(v, compact) {
+  const abs = Math.abs(v);
+  if (compact) {
+    if (abs >= 1000000) return '£' + (v / 1000000).toFixed(abs >= 10000000 ? 0 : 1) + 'M';
+    if (abs >= 1000) return '£' + (v / 1000).toFixed(abs >= 10000 ? 0 : 0) + 'K';
+    return '£' + v;
+  }
+  return (v < 0 ? '-£' : '£') + Math.abs(v).toLocaleString('en-GB');
+}
+
+// ============================================================
+// Physics
+// ============================================================
+function stepBall() {
+  const b = state.ball;
+  if (!b) return;
+
+  b.vy += GRAVITY;
+  b.vx *= FRICTION;
+  b.x += b.vx;
+  b.y += b.vy;
+
+  // Wall bounces
+  if (b.x - BALL_R < 0) { b.x = BALL_R; b.vx = -b.vx * ELASTICITY; }
+  if (b.x + BALL_R > W) { b.x = W - BALL_R; b.vx = -b.vx * ELASTICITY; }
+
+  // Peg collisions
+  for (const p of pegs) {
+    const dx = b.x - p.x;
+    const dy = b.y - p.y;
+    const dist = Math.hypot(dx, dy);
+    const minDist = BALL_R + PEG_R;
+    if (dist < minDist && dist > 0.001) {
+      const nx = dx / dist;
+      const ny = dy / dist;
+      const overlap = minDist - dist;
+      b.x += nx * overlap;
+      b.y += ny * overlap;
+      const vDotN = b.vx * nx + b.vy * ny;
+      if (vDotN < 0) {
+        b.vx -= (1 + ELASTICITY) * vDotN * nx;
+        b.vy -= (1 + ELASTICITY) * vDotN * ny;
+        // Add slight random horizontal nudge for Plinko-feel
+        b.vx += (Math.random() - 0.5) * PEG_RANDOM;
+        p.glow = 1;
+        // Soft tick sound
+        playPegTick();
+      }
+    }
+  }
+
+  // Slot detection
+  if (b.y >= SLOT_Y + 6) {
+    const slotIndex = Math.max(0, Math.min(SLOTS - 1, Math.floor(b.x / SLOT_WIDTH)));
+    settleInSlot(slotIndex);
+  }
+}
+
+// ============================================================
+// Sound (simple WebAudio beeps)
+// ============================================================
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch (e) { audioCtx = null; }
+  }
+  return audioCtx;
+}
+function playPegTick() {
+  const ac = getAudio();
+  if (!ac) return;
+  const o = ac.createOscillator();
+  const g = ac.createGain();
+  o.type = 'triangle';
+  o.frequency.value = 700 + Math.random() * 300;
+  g.gain.value = 0.04;
+  g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.08);
+  o.connect(g).connect(ac.destination);
+  o.start();
+  o.stop(ac.currentTime + 0.09);
+}
+function playLandSound(positive) {
+  const ac = getAudio();
+  if (!ac) return;
+  const o = ac.createOscillator();
+  const g = ac.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(positive ? 440 : 220, ac.currentTime);
+  o.frequency.exponentialRampToValueAtTime(positive ? 880 : 110, ac.currentTime + 0.3);
+  g.gain.value = 0.12;
+  g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.4);
+  o.connect(g).connect(ac.destination);
+  o.start();
+  o.stop(ac.currentTime + 0.42);
+}
+
+// ============================================================
+// Game flow
+// ============================================================
+function startGame() {
+  state.total = 0;
+  state.roundIndex = 0;
+  state.roundTotals = [0, 0, 0];
+  state.ballHistory = [];
+  state.triviaQueue = shuffle(TRIVIA);
+  updateMoney(0, false);
+  startRound();
+}
+
+function startRound() {
+  const r = currentRound();
+  state.ballsLeft = r.balls;
+  state.ballHistory.push([]);
+  document.getElementById('roundName').textContent = r.name;
+  document.getElementById('roundDesc').textContent = r.desc;
+  renderBalls();
+  drawWall();
+
+  if (r.trivia) {
+    askQuestion();
+  } else {
+    // Free Fall: just drop
+    state.ballColor = 'green';
+    state.phase = 'aim';
+    state.dropX = W / 2;
+    setPrimary('Drop Ball', () => drop());
+    document.getElementById('questionPanel').style.display = 'none';
+    document.getElementById('positionHint').textContent = 'Click on the wall to choose drop position. Press Drop.';
+    drawWall();
+  }
+}
+
+function askQuestion() {
+  if (state.ballsLeft <= 0) {
+    nextRound();
+    return;
+  }
+  const q = state.triviaQueue.shift();
+  state.currentQuestion = q;
+  document.getElementById('questionPanel').style.display = 'block';
+  document.getElementById('questionText').textContent = q.q;
+  const wrap = document.getElementById('options');
+  wrap.innerHTML = '';
+  q.o.forEach((opt, i) => {
+    const b = document.createElement('button');
+    b.className = 'option-btn';
+    b.textContent = opt;
+    b.onclick = () => answerQuestion(i, b);
+    wrap.appendChild(b);
+  });
+  state.phase = 'question';
+  setPrimary('Answer to continue', null, true);
+  document.getElementById('positionHint').textContent = 'Pick an answer. Green ball if correct, red if wrong.';
+}
+
+function answerQuestion(picked, btn) {
+  if (state.phase !== 'question') return;
+  const correct = picked === state.currentQuestion.a;
+  // Disable buttons, mark
+  const opts = document.querySelectorAll('#options .option-btn');
+  opts.forEach((b, i) => {
+    b.disabled = true;
+    if (i === state.currentQuestion.a) b.classList.add('correct');
+    else if (i === picked) b.classList.add('wrong');
+  });
+  state.ballColor = correct ? 'green' : 'red';
+  showBanner(correct ? 'Correct — green ball' : 'Wrong — red ball', correct ? 'green' : 'red');
+  // Move to aim
+  state.phase = 'aim';
+  state.dropX = W / 2;
+  setPrimary('Drop ' + (correct ? 'Green' : 'Red') + ' Ball', () => drop());
+  document.getElementById('positionHint').textContent = correct
+    ? 'Pick a slot to aim for. Add to your fortune.'
+    : 'For wrong answers, you still choose — but every slot subtracts.';
+  drawWall();
+}
+
+function drop() {
+  if (state.phase !== 'aim') return;
+  state.ball = {
+    x: state.dropX,
+    y: 12,
+    vx: (Math.random() - 0.5) * 0.4,
+    vy: 0.5,
+    color: state.ballColor
+  };
+  state.phase = 'dropping';
+  setPrimary('Falling…', null, true);
+  document.getElementById('positionHint').textContent = '';
+}
+
+function settleInSlot(slotIndex) {
+  const values = currentValues();
+  let v = values[slotIndex];
+  const signed = state.ballColor === 'red' ? -v : v;
+
+  // Record
+  state.ballHistory[state.roundIndex].push({ color: state.ballColor, value: signed, slot: slotIndex });
+  state.roundTotals[state.roundIndex] += signed;
+  updateMoney(state.total + signed, signed >= 0);
+  state.total += signed;
+
+  // Visual + sound
+  playLandSound(signed >= 0);
+  showBanner(
+    (signed >= 0 ? '+' : '') + formatMoney(signed, false) + (state.ballColor === 'green' ? ' added!' : ' lost'),
+    signed >= 0 ? 'green' : 'red'
+  );
+
+  state.ball = null;
+  state.ballsLeft -= 1;
+  renderBalls();
+  state.phase = 'between';
+  setPrimary('Continue', () => continueAfterDrop(), false);
+  drawWall();
+}
+
+function continueAfterDrop() {
+  hideBanner();
+  if (state.ballsLeft <= 0) {
+    nextRound();
+    return;
+  }
+  const r = currentRound();
+  if (r.trivia) {
+    askQuestion();
+  } else {
+    state.ballColor = 'green';
+    state.phase = 'aim';
+    state.dropX = W / 2;
+    setPrimary('Drop Ball', () => drop());
+    document.getElementById('positionHint').textContent = 'Click on the wall to choose drop position. Press Drop.';
+    drawWall();
+  }
+}
+
+function nextRound() {
+  state.roundIndex += 1;
+  if (state.roundIndex >= ROUNDS.length) {
+    endGame();
+    return;
+  }
+  // Brief round transition
+  document.getElementById('questionPanel').style.display = 'none';
+  const r = currentRound();
+  showBanner('Round ' + r.id + ' — ' + (r.id === 3 ? 'Stakes doubled' : r.name.split(': ')[1]), 'green');
+  setTimeout(() => { startRound(); }, 1200);
+}
+
+function endGame() {
+  state.phase = 'over';
+  document.getElementById('questionPanel').style.display = 'none';
+  const lines = state.roundTotals.map((t, i) => {
+    const r = ROUNDS[i];
+    return `<div><span>${r.name}</span><span style="font-family:'JetBrains Mono',monospace;color:${t>=0?'var(--green)':'var(--red)'}">${(t>=0?'+':'')}${formatMoney(t,false)}</span></div>`;
+  }).join('');
+  const finalClass = state.total >= 0 ? '' : 'negative';
+  const flavour = state.total >= 500000 ? "You owned that wall."
+    : state.total >= 100000 ? "Solid run."
+    : state.total >= 1 ? "You walk away with something."
+    : state.total === 0 ? "Right back where you started."
+    : "Brutal. The wall won.";
+  showModal(`
+    <h2>Game Over</h2>
+    <p>${flavour}</p>
+    <div class="big-money ${finalClass}">${formatMoney(state.total, false)}</div>
+    <div class="rounds-summary">
+      ${lines}
+      <div><span>Final Total</span><span style="font-family:'JetBrains Mono',monospace;color:var(--gold)">${formatMoney(state.total,false)}</span></div>
+    </div>
+    <button class="btn-primary" onclick="hideModal(); startGame();">Play Again</button>
+  `);
+}
+
+// ============================================================
+// UI helpers
+// ============================================================
+function renderBalls() {
+  const wrap = document.getElementById('ballsRow');
+  wrap.innerHTML = '';
+  const r = currentRound();
+  const history = state.ballHistory[state.roundIndex] || [];
+  for (let i = 0; i < r.balls; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'ball-pip';
+    const used = history[i];
+    if (used) { pip.classList.add('spent', used.color); }
+    wrap.appendChild(pip);
+  }
+}
+
+function setPrimary(label, onclick, disabled) {
+  const btn = document.getElementById('primaryBtn');
+  btn.textContent = label;
+  btn.disabled = !!disabled || !onclick;
+  btn.onclick = onclick || null;
+}
+
+function updateMoney(newTotal, up) {
+  const el = document.getElementById('moneyDisplay');
+  el.textContent = formatMoney(newTotal, false);
+  el.classList.remove('flash-up', 'flash-down');
+  // Force reflow to restart animation
+  void el.offsetWidth;
+  if (up === true) el.classList.add('flash-up');
+  else if (up === false) el.classList.add('flash-down');
+}
+
+let bannerTimeout = null;
+function showBanner(text, kind) {
+  const b = document.getElementById('banner');
+  b.textContent = text;
+  b.className = 'banner show' + (kind ? ' ' + kind : '');
+  if (bannerTimeout) clearTimeout(bannerTimeout);
+  bannerTimeout = setTimeout(hideBanner, 2200);
+}
+function hideBanner() {
+  document.getElementById('banner').classList.remove('show');
+}
+
+function showModal(html) {
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('modalBack').classList.add('show');
+}
+function hideModal() {
+  document.getElementById('modalBack').classList.remove('show');
+}
+
+// ============================================================
+// Input handlers
+// ============================================================
+canvas.addEventListener('mousemove', (e) => {
+  if (state.phase !== 'aim') return;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = W / rect.width;
+  const x = (e.clientX - rect.left) * scaleX;
+  // Snap to nearest column centre for predictability
+  state.dropX = Math.max(BALL_R + 4, Math.min(W - BALL_R - 4, x));
+  drawWall();
+});
+canvas.addEventListener('click', (e) => {
+  if (state.phase !== 'aim') return;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = W / rect.width;
+  const x = (e.clientX - rect.left) * scaleX;
+  state.dropX = Math.max(BALL_R + 4, Math.min(W - BALL_R - 4, x));
+  drop();
+});
+document.addEventListener('keydown', (e) => {
+  if (state.phase === 'aim') {
+    if (e.key === 'ArrowLeft')  { state.dropX = Math.max(BALL_R + 4, state.dropX - 12); drawWall(); }
+    if (e.key === 'ArrowRight') { state.dropX = Math.min(W - BALL_R - 4, state.dropX + 12); drawWall(); }
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); drop(); }
+  }
+});
+
+// ============================================================
+// Main loop
+// ============================================================
+function loop() {
+  if (state.phase === 'dropping') {
+    // Several physics substeps per frame for stability
+    for (let i = 0; i < 2; i++) stepBall();
+  }
+  drawWall();
+  requestAnimationFrame(loop);
+}
+
+// ============================================================
+// Boot
+// ============================================================
+setPrimary('Start Game', () => startGame());
+renderBalls();
+drawWall();
+loop();
+</script>
+</body>
+</html>

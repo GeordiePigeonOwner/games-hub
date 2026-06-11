@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Symbol Wheels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{--bg-0:#0b0f1e;--bg-1:#131831;--bg-2:#1a2040;--surface:#1d2442;--surface-2:#252c52;--surface-hi:#2e376a;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.14);--text:#eef1ff;--text-dim:rgba(238,241,255,0.62);--text-faint:rgba(238,241,255,0.38);--accent:#6ac9ff;--accent-2:#9a7bff;--accent-grad:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);--success:#3ed598;--gold:#ffd77a;--danger:#ff6b6b;--warn:#ffb86c;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--shadow-sm:0 2px 8px rgba(0,0,0,0.25);--shadow-md:0 8px 24px rgba(0,0,0,0.35);--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--font-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;--ease:cubic-bezier(0.4,0,0.2,1);}
+*{box-sizing:border-box;}html,body{height:100%;}
+body{margin:0;font-family:var(--font-sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px;background:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(154,123,255,0.14),transparent 60%),radial-gradient(ellipse 60% 60% at 80% 100%,rgba(106,201,255,0.1),transparent 60%),linear-gradient(180deg,var(--bg-1) 0%,var(--bg-0) 100%);background-attachment:fixed;}
+h1{margin:0 0 8px;font-size:32px;font-weight:700;letter-spacing:-0.02em;color:var(--text);}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){h1{background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}}
+h2{margin:0 0 12px;font-size:22px;font-weight:600;}h3{margin:0 0 8px;font-size:18px;font-weight:600;}
+.sub{color:var(--text-dim);margin:0 0 24px;font-size:15px;text-align:center;max-width:560px;}
+.back-link{position:fixed;top:20px;left:20px;color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:8px 14px;border-radius:var(--r-sm);background:rgba(29,36,66,0.7);border:1px solid var(--border);transition:all 0.2s var(--ease);z-index:10;}
+.back-link:hover{color:var(--text);background:rgba(46,55,106,0.8);border-color:var(--border-hi);transform:translateX(-2px);}
+.panel{background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-md);}
+.settings{background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 22px;margin-bottom:20px;display:grid;grid-template-columns:max-content 1fr;gap:14px 24px;align-items:center;box-shadow:var(--shadow-sm);transition:opacity 0.2s var(--ease);max-width:520px;width:100%;}
+.settings.locked{opacity:0.45;pointer-events:none;}
+.settings label{font-size:13px;color:var(--text-dim);font-weight:500;}
+.settings .val{font-weight:700;color:var(--text);margin-left:6px;font-variant-numeric:tabular-nums;}
+input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:6px;background:var(--bg-2);border-radius:3px;outline:none;border:1px solid var(--border);}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--surface);box-shadow:0 2px 6px rgba(0,0,0,0.4);}
+input[type="range"]:disabled{opacity:0.4;}
+input[type="checkbox"]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;}
+.settings-row{display:flex;align-items:center;gap:10px;}
+button{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;border:none;padding:11px 20px;border-radius:var(--r-sm);font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;transition:all 0.15s var(--ease);box-shadow:0 2px 8px rgba(106,201,255,0.25);}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 14px rgba(106,201,255,0.4);}
+button:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+button.big{padding:13px 32px;font-size:15px;}
+button.ghost{background:rgba(255,255,255,0.04);color:var(--text);border:1px solid var(--border-hi);box-shadow:none;}
+button.ghost:hover:not(:disabled){background:rgba(255,255,255,0.08);box-shadow:none;}
+.pill-group{display:inline-flex;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px;gap:2px;}
+.pill{background:transparent;color:var(--text-dim);border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:none;transition:all 0.15s var(--ease);}
+button.pill:hover:not(:disabled){color:var(--text);background:rgba(255,255,255,0.04);transform:none;box-shadow:none;}
+button.pill.active{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;box-shadow:0 2px 8px rgba(106,201,255,0.3);}
+.timer-bar{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:520px;margin-bottom:12px;padding:12px 18px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-md);}
+.timer{font-family:var(--font-mono);font-size:20px;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums;}
+.meta,.guess-counter,.attempts{font-size:13px;color:var(--text-dim);font-weight:500;}
+.status{margin-top:18px;text-align:center;min-height:24px;font-size:15px;color:var(--text);font-weight:500;}
+.status .new-best{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:10px;background:linear-gradient(135deg,#ffd77a,#ff9d4a);color:#1a0f00;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
+.hidden{display:none !important;}
+.board{background:linear-gradient(180deg,var(--surface) 0%,var(--bg-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-md);position:relative;}
+</style>
+<style>
+  .settings input[type="range"] { width: 180px; }
+
+  .board {
+    padding: 28px;
+    min-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .board.idle { padding: 60px 24px; min-height: 220px; display: flex; align-items: center; justify-content: center; }
+  .idle-msg { color: var(--text-faint); font-size: 14px; text-align: center; }
+
+  .wheel-stage {
+    position: relative;
+    width: 380px;
+    height: 380px;
+  }
+  .wheel {
+    position: absolute;
+    top: 50%; left: 50%;
+    border-radius: 50%;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+  }
+  .segment {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 0;
+    height: 0;
+    transform-origin: center;
+    font-family: var(--font-sans);
+    font-size: 28px;
+    font-weight: 700;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  }
+  .segment-inner {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  }
+
+  .wheel-bg {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--border-hi);
+    box-shadow: inset 0 0 28px rgba(0,0,0,0.5);
+  }
+  .wheel-hub {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #3a4375, #0f1430);
+    border: 2px solid var(--border-hi);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6), inset 0 0 12px rgba(0,0,0,0.6);
+    z-index: 10;
+  }
+  .pointer {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 16px solid var(--gold);
+    filter: drop-shadow(0 2px 6px rgba(255,215,122,0.5));
+    z-index: 20;
+  }
+
+  .controls-row {
+    display: grid;
+    gap: 10px 12px;
+    align-items: center;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 14px 18px;
+    backdrop-filter: blur(8px);
+  }
+  .ctrl-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+  .spin-btn {
+    width: 38px;
+    height: 34px;
+    padding: 0;
+    font-size: 18px;
+    background: linear-gradient(180deg, var(--surface-hi), var(--surface-2));
+    color: var(--text);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--r-sm);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  }
+  .spin-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, var(--surface-hi), var(--surface-hi));
+    box-shadow: 0 4px 10px rgba(106,201,255,0.2);
+  }
+
+  .moves-counter {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    margin-left: 6px;
+  }
+
+  .controls { margin-top: 18px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+  <script>
+window.GameFramework=(function(){
+function formatTime(t){const m=Math.floor(t/60).toString().padStart(2,'0'),s=(Math.floor(t)%60).toString().padStart(2,'0');return m+':'+s;}
+function createTimer(o){let st=0,el=0,iv=null;const d=o.display,lim=o.limitSeconds||0;function r(){if(!d)return;if(lim>0){const rem=Math.max(0,lim-el);d.textContent=formatTime(rem);d.style.color=rem<=10?'var(--danger)':'var(--accent)';}else{d.textContent=formatTime(el);d.style.color='var(--accent)';}}const api={start(){api.stop();st=Date.now();el=0;r();iv=setInterval(function(){el=Math.floor((Date.now()-st)/1000);r();if(o.onTick)o.onTick(el);if(lim>0&&el>=lim){api.stop();if(o.onExpire)o.onExpire();}},250);},stop(){if(iv){clearInterval(iv);iv=null;}},reset(){api.stop();el=0;r();},get elapsed(){return el;}};return api;}
+const K='gamesCreation.records.v1';
+function load(){try{const r=localStorage.getItem(K);return r?JSON.parse(r):{};}catch(e){return{};}}
+function save(r){try{localStorage.setItem(K,JSON.stringify(r));}catch(e){}}
+function recordWin(g,s,c){const a=load();const k=c?g+':'+c:g;const e=a[k]||{wins:0};const nb=e.bestSeconds==null||s<e.bestSeconds;a[k]={bestSeconds:nb?s:e.bestSeconds,wins:(e.wins||0)+1,lastPlayed:Date.now()};save(a);return{isNewBest:nb,bestSeconds:a[k].bestSeconds};}
+function getRecord(g){const a=load();const p=g+':';let b=null,w=0,lp=0;for(const k of Object.keys(a)){if(k!==g&&!k.startsWith(p))continue;const r=a[k];w+=r.wins||0;if(r.lastPlayed>lp)lp=r.lastPlayed;if(r.bestSeconds!=null&&(b==null||r.bestSeconds<b))b=r.bestSeconds;}if(w===0&&b==null)return null;return{bestSeconds:b,wins:w,lastPlayed:lp};}
+function injectBackLink(h){const a=document.createElement('a');a.className='back-link';a.href=h||'../index.html';a.textContent='\u2190 Menu';document.body.appendChild(a);}
+return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,getRecord:getRecord,injectBackLink:injectBackLink,loadRecords:load};
+})();
+GameFramework.injectBackLink();
+</script>
+  <h1>Symbol Wheels</h1>
+  <div class="sub">Rotate the wheels so every symbol along the gold arrow matches</div>
+
+  <div class="settings" id="settings">
+    <label>Wheels: <span class="val" id="ringsVal">3</span></label>
+    <input type="range" id="ringsInput" min="2" max="5" value="3">
+
+    <label>Segments: <span class="val" id="segmentsVal">8</span></label>
+    <input type="range" id="segmentsInput" min="6" max="10" value="8">
+  </div>
+
+  <div class="timer-bar">
+    <div class="meta" id="progressMeta">Not started</div>
+    <div class="timer" id="timerDisplay">00:00</div>
+  </div>
+
+  <div class="board idle" id="board">
+    <div class="idle-msg">Press <b>Start Game</b> to begin</div>
+  </div>
+
+  <div class="controls">
+    <button id="startBtn" class="big">Start Game</button>
+    <button id="resetBtn" class="ghost hidden">Reset</button>
+  </div>
+
+  <div class="status" id="status"></div>
+
+<script>
+  const SYMBOLS = ['◆','★','●','▲','■','✦','♥','♦','⬢','◉'];
+  const RING_COLORS = ['#6ac9ff', '#9a7bff', '#ffd77a', '#3ed598', '#ff9a3c'];
+
+  const config = { rings: 3, segments: 8 };
+
+  let rotations = []; // one int per ring — offset in segments
+  let wheelEls = [];  // outer div per ring
+  let gameState = 'idle';
+  let timer = null;
+  let moves = 0;
+
+  const boardEl = document.getElementById('board');
+  const settingsEl = document.getElementById('settings');
+  const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const statusEl = document.getElementById('status');
+  const progressMeta = document.getElementById('progressMeta');
+  const timerDisplay = document.getElementById('timerDisplay');
+
+  const ringsInput = document.getElementById('ringsInput');
+  const ringsVal = document.getElementById('ringsVal');
+  const segmentsInput = document.getElementById('segmentsInput');
+  const segmentsVal = document.getElementById('segmentsVal');
+
+  function updateSettingsDisplay() {
+    ringsVal.textContent = ringsInput.value;
+    segmentsVal.textContent = segmentsInput.value;
+  }
+  [ringsInput, segmentsInput].forEach(el => el.addEventListener('input', updateSettingsDisplay));
+
+  function startGame() {
+    config.rings = parseInt(ringsInput.value, 10);
+    config.segments = parseInt(segmentsInput.value, 10);
+
+    // random starting rotations, ensure not already solved
+    rotations = [];
+    do {
+      rotations = Array.from({ length: config.rings },
+        () => Math.floor(Math.random() * config.segments));
+    } while (isSolved());
+
+    // innermost wheel is fixed reference (rotation = 0)
+    rotations[0] = 0;
+
+    moves = 0;
+    gameState = 'playing';
+    statusEl.textContent = '';
+
+    settingsEl.classList.add('locked');
+    startBtn.classList.add('hidden');
+    resetBtn.classList.remove('hidden');
+    resetBtn.textContent = 'Reset';
+
+    renderBoard();
+
+    timer = window.GameFramework.createTimer({ display: timerDisplay });
+    timer.start();
+  }
+
+  function renderBoard() {
+    boardEl.innerHTML = '';
+    boardEl.classList.remove('idle');
+
+    const stage = document.createElement('div');
+    stage.className = 'wheel-stage';
+
+    // center pointer
+    const pointer = document.createElement('div');
+    pointer.className = 'pointer';
+    stage.appendChild(pointer);
+
+    const { segments, rings } = config;
+    const outerRadius = 180;
+    const innerRadius = 60;
+    const ringThickness = (outerRadius - innerRadius) / rings;
+
+    wheelEls = [];
+
+    // Build rings from outer (index rings-1) to inner (index 0)
+    for (let r = 0; r < rings; r++) {
+      const ringRadius = innerRadius + (r + 0.5) * ringThickness;
+      const size = ringRadius * 2;
+
+      const wheel = document.createElement('div');
+      wheel.className = 'wheel';
+      wheel.style.width = size + 'px';
+      wheel.style.height = size + 'px';
+      wheel.style.marginLeft = (-ringRadius) + 'px';
+      wheel.style.marginTop = (-ringRadius) + 'px';
+      // layering: outer rings first (lower z), inner on top
+      wheel.style.zIndex = r + 1;
+
+      // background disc for this ring
+      const bg = document.createElement('div');
+      bg.className = 'wheel-bg';
+      const col = RING_COLORS[r % RING_COLORS.length];
+      bg.style.background =
+        `radial-gradient(circle at 50% 50%, transparent 0, transparent ${(innerRadius + r * ringThickness) / ringRadius * 50}%, ` +
+        `rgba(${hexToRgb(col)}, 0.18) ${(innerRadius + r * ringThickness) / ringRadius * 50 + 0.5}%, ` +
+        `rgba(${hexToRgb(col)}, 0.32) ${(innerRadius + (r + 1) * ringThickness) / ringRadius * 50}%, ` +
+        `transparent ${(innerRadius + (r + 1) * ringThickness) / ringRadius * 50 + 0.5}%)`;
+      wheel.appendChild(bg);
+
+      // place symbols around circle at radius ringRadius (which == size/2)
+      for (let s = 0; s < segments; s++) {
+        const angle = s * (360 / segments);
+        const seg = document.createElement('div');
+        seg.className = 'segment';
+        seg.style.transform = `translate(0, 0) rotate(${angle}deg)`;
+        // inner element placed along the ring's radius
+        const sym = document.createElement('div');
+        sym.className = 'segment-inner';
+        sym.textContent = SYMBOLS[s];
+        sym.style.color = col;
+        sym.style.filter = `drop-shadow(0 0 4px ${col})`;
+        // position: radius = ringRadius (from center = size/2)
+        sym.style.top = `-${ringRadius - ringThickness/2 - 2}px`;
+        sym.style.left = '0';
+        seg.appendChild(sym);
+        wheel.appendChild(seg);
+      }
+
+      stage.appendChild(wheel);
+      wheelEls.push(wheel);
+      applyRotation(r);
+    }
+
+    // central hub on top
+    const hub = document.createElement('div');
+    hub.className = 'wheel-hub';
+    stage.appendChild(hub);
+
+    boardEl.appendChild(stage);
+
+    // controls
+    const ctrl = document.createElement('div');
+    ctrl.className = 'controls-row';
+    ctrl.style.gridTemplateColumns = 'max-content max-content max-content max-content';
+    // header row
+    for (let r = 0; r < rings; r++) {
+      const row = document.createElement('div');
+      row.style.display = 'contents';
+
+      const label = document.createElement('div');
+      label.className = 'ctrl-label';
+      label.textContent = r === 0 ? `Wheel ${r + 1} (locked)` : `Wheel ${r + 1}`;
+      label.style.color = RING_COLORS[r % RING_COLORS.length];
+
+      const btnMinus = document.createElement('button');
+      btnMinus.className = 'spin-btn';
+      btnMinus.textContent = '↺';
+      btnMinus.disabled = r === 0;
+      btnMinus.addEventListener('click', () => spin(r, -1));
+
+      const btnPlus = document.createElement('button');
+      btnPlus.className = 'spin-btn';
+      btnPlus.textContent = '↻';
+      btnPlus.disabled = r === 0;
+      btnPlus.addEventListener('click', () => spin(r, 1));
+
+      const spacer = document.createElement('div');
+      spacer.className = 'ctrl-label';
+      spacer.style.textAlign = 'right';
+      spacer.textContent = '';
+
+      ctrl.appendChild(label);
+      ctrl.appendChild(btnMinus);
+      ctrl.appendChild(btnPlus);
+      ctrl.appendChild(spacer);
+    }
+    boardEl.appendChild(ctrl);
+
+    updateProgress();
+  }
+
+  function hexToRgb(hex) {
+    const h = hex.replace('#','');
+    const bigint = parseInt(h, 16);
+    return `${(bigint>>16)&255},${(bigint>>8)&255},${bigint&255}`;
+  }
+
+  function applyRotation(r) {
+    const deg = -rotations[r] * (360 / config.segments);
+    wheelEls[r].style.transform = `rotate(${deg}deg)`;
+  }
+
+  function spin(ringIdx, dir) {
+    if (gameState !== 'playing' || ringIdx === 0) return;
+    rotations[ringIdx] = (rotations[ringIdx] + dir + config.segments) % config.segments;
+    moves++;
+    applyRotation(ringIdx);
+    updateProgress();
+    if (isSolved()) win();
+  }
+
+  function isSolved() {
+    // solved when all rings have the same rotation offset — ref ring is 0, so all must be 0
+    return rotations.every(r => r === rotations[0]);
+  }
+
+  function updateProgress() {
+    progressMeta.textContent = `Moves: ${moves}`;
+  }
+
+  function win() {
+    gameState = 'over';
+    timer.stop();
+    const configKey = `r${config.rings}-s${config.segments}`;
+    const result = window.GameFramework.recordWin('symbol-wheels', timer.elapsed, configKey);
+    const newBest = result.isNewBest ? '<span class="new-best">NEW BEST</span>' : '';
+    statusEl.innerHTML = `Solved in ${moves} moves · ${window.GameFramework.formatTime(timer.elapsed)} ${newBest}`;
+    showPostGameControls();
+  }
+
+  function showPostGameControls() {
+    startBtn.classList.remove('hidden');
+    startBtn.textContent = 'Play Again';
+    resetBtn.textContent = 'Change Settings';
+    // disable further spins
+    boardEl.querySelectorAll('.spin-btn').forEach(b => b.disabled = true);
+  }
+
+  function resetToIdle() {
+    if (timer) timer.reset();
+    gameState = 'idle';
+    rotations = [];
+    wheelEls = [];
+    moves = 0;
+
+    settingsEl.classList.remove('locked');
+    startBtn.classList.remove('hidden');
+    startBtn.textContent = 'Start Game';
+    resetBtn.classList.add('hidden');
+
+    boardEl.innerHTML = '<div class="idle-msg">Press <b>Start Game</b> to begin</div>';
+    boardEl.classList.add('idle');
+    progressMeta.textContent = 'Not started';
+    timerDisplay.textContent = '00:00';
+    statusEl.textContent = '';
+  }
+
+  startBtn.addEventListener('click', startGame);
+  resetBtn.addEventListener('click', resetToIdle);
+
+  updateSettingsDisplay();
+</script>
+</body>
+</html>

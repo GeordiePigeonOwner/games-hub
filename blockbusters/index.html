@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Blockbusters — Live</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script>if(typeof Peer==='undefined'){document.write('<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"><\/script>');}</script>
+<style>
+:root{
+  --bg-0:#0b0f1e;--bg-1:#131831;--surface:#1d2442;--surface-2:#252c52;
+  --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+  --text:#eef1ff;--text-dim:rgba(238,241,255,0.65);--text-faint:rgba(238,241,255,0.42);
+  --accent:#6ac9ff;--accent-2:#9a7bff;--accent-grad:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);
+  --success:#3ed598;--gold:#ffd77a;--danger:#ff6b6b;
+  --bb-teal:#3fb4c2;--bb-cream:#f4ecc7;--bb-ink:#1c2238;
+  --blue:#2563c9;--blue-hi:#5b9ad9;--white-t:#fdf8e2;--white-hi:#fffdf4;
+  --ease:cubic-bezier(0.4,0,0.2,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  font-size:15px;line-height:1.5;color:var(--text);min-height:100vh;
+  background:radial-gradient(1200px 700px at 50% -10%,#13234d 0%,var(--bg-0) 55%,#050812 100%);
+  display:flex;flex-direction:column;align-items:center;padding:16px;}
+.back-link{position:fixed;top:12px;left:12px;color:var(--text-dim);text-decoration:none;font-size:13px;
+  padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:rgba(20,24,50,0.6);
+  backdrop-filter:blur(8px);z-index:10;transition:all .2s var(--ease);}
+.back-link:hover{color:var(--text);border-color:var(--border-hi);}
+h1{font-size:30px;font-weight:900;margin:10px 0 2px;letter-spacing:-0.02em;text-align:center;}
+@supports (background-clip:text){h1{background:linear-gradient(135deg,#ffd77a 0%,#ffb347 50%,#6ac9ff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}}
+.subtitle{color:var(--text-dim);font-size:13.5px;margin:0 0 18px;text-align:center;max-width:560px;}
+section.scr{display:none;width:100%;max-width:1100px;flex-direction:column;align-items:center;}
+section.scr.show{display:flex;}
+button{font-family:inherit;font-size:14px;font-weight:700;padding:11px 22px;border-radius:10px;border:none;cursor:pointer;
+  background:var(--accent-grad);color:#0b0f1e;transition:transform .15s var(--ease),box-shadow .15s var(--ease),opacity .15s var(--ease);}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 18px rgba(106,201,255,0.35);}
+button:disabled{opacity:0.35;cursor:not-allowed;}
+button.ghost{background:rgba(255,255,255,0.07);color:var(--text);border:1px solid var(--border);}
+button.ghost:hover:not(:disabled){background:rgba(255,255,255,0.12);border-color:var(--border-hi);box-shadow:none;}
+button.good{background:linear-gradient(135deg,#3ed598,#2bb583);color:#04130c;}
+button.bad{background:linear-gradient(135deg,#ff6b6b,#e14d4d);color:#1d0404;}
+button.warn{background:linear-gradient(135deg,#ffd77a,#f0b840);color:#241a02;}
+input[type=text]{background:rgba(0,0,0,0.32);border:1px solid var(--border);border-radius:10px;color:var(--text);
+  padding:12px 14px;font-size:16px;font-family:inherit;outline:none;width:100%;transition:border-color .15s var(--ease);}
+input[type=text]:focus{border-color:var(--accent);}
+.card{background:linear-gradient(180deg,rgba(29,36,66,0.85) 0%,rgba(19,24,49,0.9) 100%);border:1px solid var(--border);
+  border-radius:16px;padding:22px 24px;box-shadow:0 14px 44px rgba(0,0,0,0.45);}
+.kicker{font-size:11px;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-faint);}
+
+/* landing */
+.land-grid{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:6px;}
+.land-grid .card{width:320px;display:flex;flex-direction:column;gap:12px;}
+.land-grid h3{margin:0;font-size:18px;}
+.land-grid p{margin:0;color:var(--text-dim);font-size:13px;}
+.joinrow{display:flex;gap:8px;}
+#joinCode{text-transform:uppercase;letter-spacing:0.25em;font-family:'JetBrains Mono',monospace;font-weight:700;}
+.mode-pills{display:flex;flex-direction:column;gap:8px;}
+.mode-pill{display:flex;flex-direction:column;gap:2px;text-align:left;background:rgba(0,0,0,0.25);border:1.5px solid var(--border);
+  border-radius:12px;padding:12px 14px;cursor:pointer;color:var(--text);transition:border-color .15s var(--ease);}
+.mode-pill small{color:var(--text-dim);font-weight:500;font-size:12px;}
+.mode-pill.active{border-color:var(--accent);background:rgba(106,201,255,0.1);}
+.errline{color:var(--danger);font-size:13px;font-weight:600;min-height:18px;text-align:center;}
+
+/* lobby */
+.codebox{font-family:'JetBrains Mono',monospace;font-size:52px;font-weight:800;letter-spacing:0.3em;text-align:center;
+  color:var(--gold);text-shadow:0 0 30px rgba(255,215,122,0.4);margin:4px 0 2px;}
+.lobby-grid{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;width:100%;margin-top:14px;}
+.teamcol{flex:1;min-width:240px;max-width:340px;border-radius:14px;padding:14px;border:1.5px solid var(--border);}
+.teamcol.blue{background:linear-gradient(180deg,rgba(37,99,201,0.22),rgba(37,99,201,0.08));border-color:rgba(91,154,217,0.5);}
+.teamcol.white{background:linear-gradient(180deg,rgba(253,248,226,0.14),rgba(253,248,226,0.04));border-color:rgba(253,248,226,0.4);}
+.teamcol.none{background:rgba(255,255,255,0.03);}
+.teamcol h4{margin:0 0 8px;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;}
+.teamcol .hint{font-size:11.5px;color:var(--text-faint);margin-bottom:8px;}
+.pchip{display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.28);border:1px solid var(--border);
+  border-radius:9px;padding:7px 11px;margin-bottom:6px;font-weight:600;font-size:14px;}
+.pchip .you{color:var(--gold);font-size:10px;font-weight:800;letter-spacing:0.1em;margin-left:6px;}
+.pchip .off{color:var(--danger);font-size:10px;font-weight:800;margin-left:6px;}
+.pchip button{padding:4px 9px;font-size:11px;border-radius:6px;}
+.teampick{display:flex;gap:8px;margin-top:10px;}
+.lobby-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center;}
+
+/* game header */
+.ghead{display:flex;gap:12px;width:100%;align-items:stretch;justify-content:center;flex-wrap:wrap;margin-bottom:8px;}
+.tpanel{flex:1;min-width:200px;max-width:330px;border-radius:14px;padding:10px 14px;border:1.5px solid var(--border);position:relative;overflow:hidden;}
+.tpanel.blue{background:linear-gradient(135deg,rgba(37,99,201,0.3),rgba(37,99,201,0.1));border-color:rgba(91,154,217,0.55);}
+.tpanel.white{background:linear-gradient(135deg,rgba(253,248,226,0.16),rgba(253,248,226,0.05));border-color:rgba(253,248,226,0.45);}
+.tpanel .tname{font-size:12px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;}
+.tpanel.blue .tname{color:var(--blue-hi);}
+.tpanel.white .tname{color:var(--white-t);}
+.tpanel .tplayers{font-size:14px;font-weight:700;margin:2px 0;min-height:20px;}
+.tpanel .trow{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--text-dim);}
+.tpanel .money{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--gold);}
+.gdots{display:flex;gap:4px;}
+.gdot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid var(--border);}
+.gdot.won{background:var(--gold);border-color:#caa53f;box-shadow:0 0 8px rgba(255,215,122,0.6);}
+.tpanel.hasbuzz{animation:panelbuzz .5s var(--ease);}
+.tpanel.active-turn{box-shadow:0 0 0 2px var(--gold),0 0 22px rgba(255,215,122,0.35);}
+@keyframes panelbuzz{0%{transform:scale(1)}30%{transform:scale(1.04)}100%{transform:scale(1)}}
+.gcenter{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:150px;}
+.gcenter .gameno{font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-faint);font-weight:800;}
+.status{min-height:22px;font-weight:700;text-align:center;font-size:14.5px;margin-top:2px;}
+.status.good{color:var(--success);}.status.bad{color:var(--danger);}.status.gold{color:var(--gold);}
+
+/* board */
+.board-wrap{display:flex;justify-content:center;width:100%;padding:4px 0 8px;}
+svg.board{display:block;width:min(680px,96vw);height:auto;filter:drop-shadow(0 10px 32px rgba(0,0,0,0.5));}
+.hex{cursor:default;}
+.hex.clickable{cursor:pointer;}
+.hex .hbg{fill:#f4ecc7;stroke:#1c2238;stroke-width:2.6;transition:fill .22s var(--ease);}
+.hex.clickable:hover .hbg{fill:#fffdf0;}
+.hex.blue .hbg{fill:url(#gBlue);stroke:#0c2440;}
+.hex.white .hbg{fill:url(#gWhite);stroke:#9a925e;}
+.hex.goldwon .hbg{fill:url(#gGold);stroke:#8a5a06;}
+.hex.black .hbg{fill:#11131f;stroke:#000;}
+.hex.live .hbg{fill:#fff;stroke:var(--gold);stroke-width:4;}
+.hex text{font-family:'Inter',sans-serif;font-weight:900;text-anchor:middle;dominant-baseline:central;pointer-events:none;fill:#1c2238;}
+.hex.blue text,.hex.black text{fill:rgba(244,236,199,0.92);}
+.hex.flashpath .hbg{animation:hexflash 0.9s ease-in-out infinite;}
+@keyframes hexflash{0%,100%{filter:brightness(1)}50%{filter:brightness(1.7)}}
+.edgelab{font-size:12px;font-weight:800;letter-spacing:0.2em;text-anchor:middle;text-transform:uppercase;}
+
+/* question card */
+.qcard{width:min(680px,96vw);border-radius:16px;padding:16px 20px;background:linear-gradient(180deg,#1d2442,#161b35);
+  border:1px solid var(--border-hi);box-shadow:0 18px 50px rgba(0,0,0,0.55);text-align:center;margin-bottom:10px;}
+.qcard .qwho{font-size:11.5px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-faint);margin-bottom:4px;min-height:16px;}
+.qletter{font-size:54px;font-weight:900;line-height:1;letter-spacing:-0.03em;
+  background:linear-gradient(135deg,#ffd77a,#ffb347);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;}
+.qprompt{font-size:17.5px;line-height:1.45;margin:4px 0 10px;min-height:24px;}
+.qanswer{font-size:14px;color:var(--success);font-weight:700;margin-bottom:8px;display:none;}
+.qanswer.show{display:block;}
+.qinput-row{display:flex;gap:8px;max-width:420px;margin:0 auto 6px;}
+.judge-row,.qextra{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap;}
+.qtimer{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:15px;color:var(--gold);min-height:20px;}
+.qresult{font-weight:800;min-height:22px;margin-top:4px;}
+.qresult.right{color:var(--success);}.qresult.wrong{color:var(--danger);}
+
+/* buzzer */
+.buzz-zone{position:fixed;left:0;right:0;bottom:0;display:none;justify-content:center;padding:10px 14px 18px;z-index:50;
+  background:linear-gradient(180deg,transparent,rgba(5,8,18,0.92) 40%);pointer-events:none;}
+.buzz-zone.show{display:flex;}
+#buzzBtn{pointer-events:auto;width:min(420px,90vw);padding:20px;font-size:22px;font-weight:900;letter-spacing:0.06em;border-radius:18px;
+  background:linear-gradient(135deg,#ff5252,#d32f2f);color:#fff;box-shadow:0 6px 0 #8e1f1f,0 14px 36px rgba(255,60,60,0.4);
+  text-transform:uppercase;transition:transform .07s,box-shadow .07s,opacity .2s;}
+#buzzBtn:active:not(:disabled){transform:translateY(5px);box-shadow:0 1px 0 #8e1f1f,0 6px 18px rgba(255,60,60,0.35);}
+#buzzBtn:disabled{opacity:0.32;box-shadow:0 6px 0 #5a1414;}
+#buzzBtn.mine{background:linear-gradient(135deg,#3ed598,#1fa371);box-shadow:0 6px 0 #14684a,0 14px 36px rgba(62,213,152,0.4);}
+.buzz-banner{position:fixed;top:18%;left:50%;transform:translate(-50%,0) scale(0.8);opacity:0;pointer-events:none;z-index:60;
+  font-size:clamp(28px,7vw,54px);font-weight:900;letter-spacing:0.04em;padding:14px 34px;border-radius:18px;text-transform:uppercase;
+  transition:all .18s var(--ease);}
+.buzz-banner.show{opacity:1;transform:translate(-50%,0) scale(1);}
+.buzz-banner.blue{background:linear-gradient(135deg,#2563c9,#173e85);color:#fff;box-shadow:0 20px 60px rgba(37,99,201,0.6);}
+.buzz-banner.white{background:linear-gradient(135deg,#fdf8e2,#e8dfb3);color:#1c2238;box-shadow:0 20px 60px rgba(253,248,226,0.45);}
+
+/* gold run */
+.gr-head{display:flex;align-items:center;gap:18px;justify-content:center;flex-wrap:wrap;margin-bottom:6px;}
+.gr-timer{font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:800;color:var(--gold);line-height:1;
+  text-shadow:0 0 26px rgba(255,215,122,0.5);min-width:130px;text-align:center;}
+.gr-timer.low{color:var(--danger);animation:hexflash .5s infinite;}
+.gr-meta{text-align:center;}
+.gr-meta .who{font-size:18px;font-weight:800;color:var(--gold);}
+.gr-meta .sub{font-size:12.5px;color:var(--text-dim);}
+
+/* overlay */
+.overlay{position:fixed;inset:0;background:rgba(5,8,18,0.82);backdrop-filter:blur(7px);display:none;justify-content:center;align-items:center;padding:20px;z-index:100;}
+.overlay.show{display:flex;}
+.ocard{background:linear-gradient(180deg,#1d2442,#141937);border:1px solid var(--border-hi);border-radius:20px;padding:30px 36px;
+  max-width:540px;width:100%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,0.7);}
+.ocard h2{margin:0 0 6px;font-size:30px;font-weight:900;letter-spacing:-0.02em;}
+.ocard h2.gold{color:var(--gold);text-shadow:0 0 24px rgba(255,215,122,0.45);}
+.ocard p{color:var(--text-dim);margin:6px 0 16px;}
+.ocard .orow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.host-tools{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:4px 0 60px;}
+.host-tools button{font-size:12px;padding:7px 13px;}
+.smallnote{font-size:11.5px;color:var(--text-faint);text-align:center;margin-top:6px;}
+@media (max-width:640px){
+  h1{font-size:24px;}
+  .qprompt{font-size:16px;}
+  .gr-timer{font-size:42px;}
+  body{padding:10px;padding-bottom:120px;}
+}
+</style>
+</head>
+<body>
+<a class="back-link" id="backLink" href="../index.html">&larr; Back to menu</a>
+
+<!-- ============ LANDING ============ -->
+<section class="scr show" id="scrLanding">
+  <h1>Blockbusters</h1>
+  <p class="subtitle">The classic ITV hexagon quiz, live over the internet. One screen hosts, everyone else joins on their phone &mdash; first on the buzzer answers. <em style="color:var(--gold);font-style:normal">"Can I have a P please, Bob?"</em></p>
+  <div class="land-grid">
+    <div class="card">
+      <h3>&#127916; Host a game</h3>
+      <p>You run the main screen (share it on the TV / video call). Pick how questions are asked:</p>
+      <div class="mode-pills">
+        <button class="mode-pill active" id="modeQuiz">
+          <strong>I'm the quizmaster</strong>
+          <small>You see questions &amp; answers, read them out loud, and judge spoken answers — just like Bob.</small>
+        </button>
+        <button class="mode-pill" id="modeCpu">
+          <strong>Computer is the quizmaster</strong>
+          <small>The computer reads questions aloud and checks typed answers — so you can join as a contestant too.</small>
+        </button>
+      </div>
+      <button id="btnHost">Create room</button>
+    </div>
+    <div class="card">
+      <h3>&#128241; Join a game</h3>
+      <p>Get the room code from your host.</p>
+      <input type="text" id="joinName" maxlength="14" placeholder="Your name">
+      <div class="joinrow">
+        <input type="text" id="joinCode" maxlength="5" placeholder="CODE">
+        <button id="btnJoin">Join</button>
+      </div>
+    </div>
+  </div>
+  <div class="errline" id="landErr"></div>
+  <p class="smallnote">Played over peer-to-peer WebRTC — the host's browser is the game server, so keep that tab open.</p>
+</section>
+
+<!-- ============ LOBBY ============ -->
+<section class="scr" id="scrLobby">
+  <h1>Blockbusters</h1>
+  <div class="kicker" style="text-align:center">Room code</div>
+  <div class="codebox" id="codeBox">·····</div>
+  <p class="subtitle" id="lobbyHint">Players: open this same page and join with the code.</p>
+  <div class="lobby-grid">
+    <div class="teamcol blue">
+      <h4 style="color:var(--blue-hi)">&#9654; Blue team — across</h4>
+      <div class="hint">Two players. Connect <strong>left to right</strong> (5 hexes).</div>
+      <div id="listBlue"></div>
+    </div>
+    <div class="teamcol white">
+      <h4 style="color:var(--white-t)">&#9650; White — up the board</h4>
+      <div class="hint">One player, shorter path: connect <strong>top to bottom</strong> (4 hexes).</div>
+      <div id="listWhite"></div>
+    </div>
+    <div class="teamcol none">
+      <h4 style="color:var(--text-dim)">Unassigned / spectators</h4>
+      <div class="hint">Pick a team, or watch from here.</div>
+      <div id="listNone"></div>
+    </div>
+  </div>
+  <div class="teampick" id="myTeamPick" style="display:none">
+    <button class="ghost" id="pickBlue">Join Blue</button>
+    <button class="ghost" id="pickWhite">Join White</button>
+    <button class="ghost" id="pickSpec">Spectate</button>
+  </div>
+  <div class="lobby-actions">
+    <button id="btnStart" style="display:none">Let's play Blockbusters!</button>
+  </div>
+  <div class="errline" id="lobbyErr"></div>
+</section>
+
+<!-- ============ GAME ============ -->
+<section class="scr" id="scrGame">
+  <div class="ghead">
+    <div class="tpanel blue" id="panelBlue">
+      <div class="tname">Blue team</div>
+      <div class="tplayers" id="namesBlue">—</div>
+      <div class="trow"><span class="money" id="moneyBlue">£0</span><span class="gdots" id="dotsBlue"></span></div>
+    </div>
+    <div class="gcenter">
+      <div class="gameno" id="gameNo">Game 1</div>
+      <div class="status" id="statusLine">—</div>
+    </div>
+    <div class="tpanel white" id="panelWhite">
+      <div class="tname">White</div>
+      <div class="tplayers" id="namesWhite">—</div>
+      <div class="trow"><span class="money" id="moneyWhite">£0</span><span class="gdots" id="dotsWhite"></span></div>
+    </div>
+  </div>
+
+  <div class="qcard" id="qcard">
+    <div class="qwho" id="qWho">Waiting…</div>
+    <div class="qletter" id="qLetter"></div>
+    <div class="qprompt" id="qPrompt">The host will start the first question.</div>
+    <div class="qanswer" id="qAnswer"></div>
+    <div class="qtimer" id="qTimer"></div>
+    <div class="qinput-row" id="qInputRow" style="display:none">
+      <input type="text" id="qInput" placeholder="Type your answer…" autocomplete="off">
+      <button id="qSubmit">Answer</button>
+    </div>
+    <div class="judge-row" id="judgeRow" style="display:none">
+      <button class="good" id="btnRight">&#10003; Correct</button>
+      <button class="bad" id="btnWrong">&#10007; Wrong</button>
+    </div>
+    <div class="qextra" id="hostExtra" style="display:none">
+      <button class="ghost" id="btnReread">&#128264; Read again</button>
+      <button class="ghost" id="btnSkipQ">Skip question</button>
+    </div>
+    <div class="qresult" id="qResult"></div>
+  </div>
+
+  <div class="board-wrap"><svg class="board" id="boardSvg"></svg></div>
+</section>
+
+<!-- ============ GOLD RUN ============ -->
+<section class="scr" id="scrGold">
+  <div class="gr-head">
+    <div class="gr-timer" id="grTimer">60</div>
+    <div class="gr-meta">
+      <div class="kicker">Gold run</div>
+      <div class="who" id="grWho">—</div>
+      <div class="sub">Gold to gold, left to right — initials only. A pass blocks the hex!</div>
+    </div>
+  </div>
+  <div class="qcard" id="grCard">
+    <div class="qwho" id="grState">On the Hot Spot</div>
+    <div class="qletter" id="grInitials" style="font-size:44px"></div>
+    <div class="qprompt" id="grPrompt">Host: hit Start when you've read the rules aloud.</div>
+    <div class="qanswer" id="grAnswer"></div>
+    <div class="qinput-row" id="grInputRow" style="display:none">
+      <input type="text" id="grInput" placeholder="Type your answer…" autocomplete="off">
+      <button id="grSubmit">Answer</button>
+    </div>
+    <div class="judge-row" id="grJudgeRow" style="display:none">
+      <button class="good" id="grRight">&#10003; Correct</button>
+      <button class="warn" id="grPass">&#9632; Pass (blocks hex)</button>
+    </div>
+    <div class="qextra" id="grHostExtra" style="display:none">
+      <button id="grStart">&#9654; Start the clock</button>
+    </div>
+    <div class="qresult" id="grResult"></div>
+  </div>
+  <div class="board-wrap"><svg class="board" id="goldSvg"></svg></div>
+</section>
+
+<div class="buzz-zone" id="buzzZone"><button id="buzzBtn" disabled>BUZZ</button></div>
+<div class="buzz-banner" id="buzzBanner"></div>
+
+<div class="overlay" id="overlay">
+  <div class="ocard">
+    <h2 id="ovTitle">—</h2>
+    <p id="ovBody"></p>
+    <div class="orow" id="ovButtons"></div>
+  </div>
+</div>
+
+<div class="host-tools" id="hostTools" style="display:none">
+  <button class="ghost" id="htNewGame">New game board</button>
+  <button class="ghost" id="htEndMatch">End match &rarr; Gold Run</button>
+  <button class="ghost" id="htLobby">Back to lobby</button>
+</div>
+
+<script>
+// Blockbusters question bank. QBANK[letter] = [[clue, answer, ...alts], ...]
+// Rendered as: What "L" is <clue>?
+const QBANK = {
+A: [
+["the ocean between Europe and the Americas","atlantic","atlantic ocean"],
+["the continent containing the Sahara Desert","africa"],
+["the fruit that keeps the doctor away when eaten daily","apple"],
+["the mountain range running down the western side of South America","andes"],
+["the first man to walk on the Moon","armstrong","neil armstrong"],
+["the capital city of Greece, home of the Parthenon","athens"],
+["a fruit with a large stone, mashed to make guacamole","avocado"],
+["the country whose capital is Vienna","austria"],
+["an ancient counting frame with sliding beads","abacus"],
+["the lightweight metal foil used to wrap food, chemical symbol Al","aluminium","aluminum"],
+["the largest rainforest in the world, named after a river","amazon"],
+["the insect that lives in colonies and can carry many times its own weight","ant"],
+["the frozen continent at the bottom of the world","antarctica"],
+["the Greek god of the sun, also a NASA Moon programme","apollo"]
+],
+B: [
+["the insect that makes honey","bee"],
+["the capital city of Germany, once divided by a wall","berlin"],
+["a yellow fruit that monkeys famously enjoy","banana"],
+["the largest country in South America","brazil"],
+["Shakespeare's nickname, the ____ of Avon","bard"],
+["a two-wheeled vehicle powered by pedals","bicycle","bike"],
+["a flying mammal that sleeps upside down","bat"],
+["the famous bell of London's clock tower","big ben"],
+["the dance style performed on pointed toes in tutus","ballet"],
+["the meal eaten first thing in the morning","breakfast"],
+["the colour of the sky on a clear day","blue"],
+["the pop group from Liverpool with John, Paul, George and Ringo","beatles","the beatles"],
+["the sport where you aim to knock down ten pins","bowling","ten pin bowling"],
+["the loaf baked from flour, water and yeast","bread"]
+],
+C: [
+["the ship of the desert, a humped animal","camel"],
+["the capital city of Egypt, near the pyramids of Giza","cairo"],
+["a period of one hundred years","century"],
+["the dairy product made from curdled milk, often served on a board","cheese"],
+["the country that built the Great Wall","china"],
+["the game played with thirty-two pieces on sixty-four squares","chess"],
+["a sweet treat made from cocoa beans","chocolate"],
+["the Roman emperor warned to beware the Ides of March","caesar","julius caesar"],
+["an insect that turns into a butterfly","caterpillar"],
+["the sport played with a bat and ball at Lord's","cricket"],
+["the orange vegetable said to help you see in the dark","carrot"],
+["the explorer who reached the Americas in 1492","columbus","christopher columbus"],
+["the large stringed instrument played between the knees with a bow","cello"],
+["the Welsh capital city","cardiff"]
+],
+D: [
+["the prehistoric reptiles wiped out sixty-six million years ago","dinosaurs","dinosaur"],
+["the capital city of the Republic of Ireland","dublin"],
+["the animal known as man's best friend","dog"],
+["the scientist who proposed evolution by natural selection","darwin","charles darwin"],
+["a game played with rectangular spotted tiles","dominoes","dominos"],
+["the hardest natural substance, a precious gem","diamond"],
+["the flightless bird of Mauritius, now extinct","dodo"],
+["the month in which Christmas falls","december"],
+["the company founded by Walt, famous for Mickey Mouse","disney"],
+["the pub game with a board numbered one to twenty","darts"],
+["the Charles who wrote Oliver Twist and A Christmas Carol","dickens","charles dickens"],
+["the intelligent sea mammal that clicks and whistles","dolphin"],
+["the fire-breathing creature of myth slain by St George","dragon"],
+["the morning moisture found on grass","dew"]
+],
+E: [
+["the largest land animal, with a trunk","elephant"],
+["the planet we live on","earth"],
+["the country famous for pyramids and pharaohs","egypt"],
+["the scientist who devised E equals m c squared","einstein","albert einstein"],
+["the Paris tower built for the 1889 World's Fair","eiffel tower","eiffel"],
+["the large flightless Australian bird","emu"],
+["the breakfast item laid by a hen","egg"],
+["the continent containing France, Spain and Italy","europe"],
+["the king of rock and roll, Mr Presley","elvis","elvis presley"],
+["the world's highest mountain","everest","mount everest"],
+["the spring festival celebrated with chocolate eggs","easter"],
+["the country whose flag is the cross of St George","england"],
+["the bird of prey on the USA's national seal","eagle"],
+["the opposite of an exit","entrance"]
+],
+F: [
+["the country famous for croissants and the Eiffel Tower","france"],
+["a cold-blooded animal that breathes through gills","fish"],
+["the amphibian that croaks and was a prince in fairy tales","frog"],
+["the red bushy-tailed animal said to be cunning","fox"],
+["the Italian city famous for Renaissance art, home of Michelangelo's David","florence"],
+["the sport known as soccer in America","football"],
+["the pink wading bird that stands on one leg","flamingo"],
+["the Alexander who discovered penicillin","fleming","alexander fleming"],
+["the season known as autumn in Britain but something else in America","fall"],
+["what a blaze of burning material is","fire"],
+["the Scandinavian country whose capital is Helsinki","finland"],
+["the part of a plant with petals","flower"],
+["the Henry who mass-produced the Model T motor car","ford","henry ford"],
+["the insect that buzzes around food and is swatted","fly"]
+],
+G: [
+["the precious yellow metal, chemical symbol Au","gold"],
+["the tallest animal in the world","giraffe"],
+["the country whose capital is Berlin","germany"],
+["the large ape of African rainforests, like King Kong","gorilla"],
+["the force that keeps our feet on the ground","gravity"],
+["the fruit that grows in bunches and makes wine","grapes","grape"],
+["the canyon carved by the Colorado River in Arizona","grand canyon"],
+["the farm animal that will eat almost anything, kept by Billy and Nanny","goat"],
+["the sport played at St Andrews with clubs","golf"],
+["the colour made by mixing blue and yellow","green"],
+["the London district where the prime meridian passes","greenwich"],
+["the friendly giant in Roald Dahl's BFG... the G of BFG","giant"],
+["the white bird that steals seaside chips","gull","seagull"],
+["the country where the Olympic Games began","greece"]
+],
+H: [
+["the boy wizard created by J.K. Rowling","harry potter","harry"],
+["the African river animal whose name means 'river horse'","hippopotamus","hippo"],
+["the organ that pumps blood around the body","heart"],
+["the capital of Finland","helsinki"],
+["the study of past events","history"],
+["the tiny bird that can hover and fly backwards","hummingbird"],
+["the sweet substance made by bees","honey"],
+["the ancient Greek poet who wrote the Iliad and the Odyssey","homer"],
+["the sport played on ice in Canada or on grass with eleven players","hockey"],
+["the detective who lived at 221B Baker Street","holmes","sherlock holmes"],
+["the animal ridden at the Grand National","horse"],
+["the country also known as the Netherlands","holland"],
+["the spotted laughing scavenger of the African plains","hyena"],
+["the prickly garden animal that rolls into a ball","hedgehog"]
+],
+I: [
+["the frozen state of water","ice"],
+["the country shaped like a boot","italy"],
+["the country whose capital is New Delhi","india"],
+["the Apple device that revolutionised the mobile phone in 2007","iphone"],
+["the metal with the chemical symbol Fe","iron"],
+["the volcanic island nation whose capital is Reykjavik","iceland"],
+["the frozen dessert served in a cone","ice cream"],
+["the large lizard of Central America kept as an exotic pet","iguana"],
+["the global network you browse with a web browser","internet"],
+["the South American empire conquered by Pizarro","inca","incas"],
+["the picture on a computer screen that you click","icon"],
+["the Pacific island... no — the land of leprechauns and shamrocks","ireland"],
+["the white material elephants were hunted for","ivory"],
+["the sting or irritation that makes you scratch","itch"]
+],
+J: [
+["the month in which the year begins","january"],
+["the country whose capital is Tokyo","japan"],
+["the spotted big cat of South America","jaguar"],
+["the sweet spread made from boiled fruit and sugar","jam"],
+["the largest planet in our solar system","jupiter"],
+["the denim trousers invented by Levi Strauss","jeans"],
+["the Caribbean island famous for reggae and Usain Bolt","jamaica"],
+["the Japanese martial art meaning 'gentle way'","judo"],
+["the dense tropical forest where the lion is king","jungle"],
+["the puzzle made of interlocking pieces","jigsaw"],
+["the Michael who sang Thriller","jackson","michael jackson"],
+["the wobbly dessert set with gelatine","jelly"],
+["the precious stones in a crown, kept at the Tower of London","jewels","crown jewels"],
+["the king who sealed the Magna Carta in 1215","john","king john"]
+],
+K: [
+["the Australian animal that hops and carries its young in a pouch","kangaroo"],
+["the Japanese martial art meaning 'empty hand'","karate"],
+["a baby cat","kitten"],
+["the flightless New Zealand bird that shares its name with a fruit","kiwi"],
+["the eating utensil with a blade","knife"],
+["the chess piece that must be protected at all costs","king"],
+["the African country whose capital is Nairobi","kenya"],
+["the toy flown on a string on windy days","kite"],
+["the Australian marsupial that eats eucalyptus leaves","koala"],
+["the joint between your thigh and your shin","knee"],
+["the Rudyard who wrote The Jungle Book","kipling","rudyard kipling"],
+["the Japanese entertainment where you sing over backing tracks","karaoke"],
+["the boxing legend... no — the metal ring knocked on a front door","knocker"],
+["the cabbage-family superfood vegetable with curly leaves","kale"]
+],
+L: [
+["the big cat known as the king of the jungle","lion"],
+["the capital of England","london"],
+["the yellow citrus fruit that is famously sour","lemon"],
+["what the famous tower of Pisa is doing","leaning"],
+["the John who sang Imagine","lennon","john lennon"],
+["the spitting South American animal related to the alpaca","llama"],
+["a flash of electricity in a thunderstorm","lightning"],
+["the Danish company famous for plastic bricks","lego"],
+["the organ that filters toxins from your blood","liver"],
+["the language of ancient Rome","latin"],
+["the home city of the Beatles","liverpool"],
+["the leafy green vegetable at the heart of a salad","lettuce"],
+["the insect that arrives in destructive swarms","locust"],
+["the Scottish word for lake","loch"]
+],
+M: [
+["the planet known as the red planet","mars"],
+["Leonardo da Vinci's painting with an enigmatic smile","mona lisa"],
+["the Disney mouse created in 1928","mickey mouse","mickey"],
+["the capital of Russia","moscow"],
+["Earth's only natural satellite","moon"],
+["the country famous for tacos and sombreros","mexico"],
+["the moustachioed Italian plumber of video games","mario"],
+["the Greek king whose touch turned everything to gold","midas"],
+["the white liquid that comes from cows","milk"],
+["the small burrowing animal said to be blind, or a spy inside an organisation","mole"],
+["the Wolfgang Amadeus of classical music","mozart"],
+["the Spanish city famous for a 'real' football club","madrid"],
+["the Mediterranean island nation whose capital is Valletta","malta"],
+["the silvery liquid metal once used in thermometers","mercury"]
+],
+N: [
+["the home a bird builds from twigs","nest"],
+["the country of fjords whose capital is Oslo","norway"],
+["the lady with the lamp, founder of modern nursing","nightingale","florence nightingale"],
+["the river that flows through Egypt","nile"],
+["the admiral who won the Battle of Trafalgar","nelson","horatio nelson","admiral nelson"],
+["the eleventh month of the year","november"],
+["the Isaac inspired by a falling apple","newton","isaac newton"],
+["the dark period between sunset and sunrise","night"],
+["the sport played by the England Roses with shooting circles","netball"],
+["the American city that never sleeps","new york"],
+["the gas making up most of the air we breathe","nitrogen"],
+["a person who travels from place to place with no fixed home","nomad"],
+["the country whose capital is Kathmandu, home to Everest's south side","nepal"],
+["the hard-shelled snack that squirrels hoard for winter","nut"]
+],
+O: [
+["the eight-armed sea creature","octopus"],
+["the games held every four years under five rings","olympics","olympic games"],
+["the fruit and colour that share a name","orange"],
+["the bird that supposedly buries its head in the sand","ostrich"],
+["the red-haired great ape of Borneo","orangutan","orang-utan"],
+["the Dickens orphan who asked for more","oliver","oliver twist"],
+["the large ensemble of strings, brass, woodwind and percussion","orchestra"],
+["the black liquid drilled from the ground and refined into petrol","oil"],
+["the nocturnal bird said to be wise","owl"],
+["the vegetable that makes you cry when you chop it","onion"],
+["the tenth month of the year","october"],
+["the Sydney building with sail-shaped roofs","opera house","sydney opera house"],
+["the fruit pressed to make a Mediterranean cooking oil","olive"],
+["the cereal grain eaten as porridge","oats","oat"]
+],
+P: [
+["a musical instrument with eighty-eight keys","piano"],
+["the black and white bear native to China","panda"],
+["the capital of France","paris"],
+["the flightless black and white bird of the Antarctic","penguin"],
+["the Pablo who co-founded Cubism","picasso","pablo picasso"],
+["the Italian dish of dough, tomato and cheese","pizza"],
+["the colourful talking bird kept by pirates","parrot"],
+["the ancient Egyptian structures at Giza","pyramids","pyramid"],
+["the chess piece that moves one square forward","pawn"],
+["the wooden boy whose nose grew when he lied","pinocchio"],
+["the London residence of the monarch, Buckingham ____","palace"],
+["the writing instrument with a nib or a ballpoint","pen"],
+["the Elvis of rock and roll's surname","presley"],
+["the vegetable mashed, roasted, boiled or chipped","potato"]
+],
+Q: [
+["the title of the monarch who reigned for seventy years until 2022","queen"],
+["the French-speaking Canadian province","quebec"],
+["a test of knowledge, like this very game","quiz"],
+["the small game bird whose eggs are a delicacy","quail"],
+["the British line of people waiting for a bus","queue"],
+["the feather pen used before fountain pens","quill"],
+["a four-sided college courtyard, or four times anything","quad"],
+["the savoury egg tart from Lorraine","quiche"],
+["the smiling Australian marsupial said to be the happiest animal on Earth","quokka"],
+["the capital of Ecuador","quito"],
+["the crystal mineral that keeps time in watches","quartz"],
+["the result of dividing one number by another","quotient"],
+["the loose-fitting bed cover stuffed with down","quilt"],
+["the state of complete silence","quiet"]
+],
+R: [
+["the colour of danger, blood and post boxes","red"],
+["the Italian capital built on seven hills","rome"],
+["the red-breasted bird on Christmas cards","robin"],
+["the long-eared animal that hops and loves carrots","rabbit"],
+["the arc of colours seen after rain","rainbow"],
+["the sport with scrums played at Twickenham","rugby"],
+["the largest country in the world by area","russia"],
+["the Sherwood Forest outlaw who stole from the rich","robin hood"],
+["the staple grain served with curry","rice"],
+["the metal humanoid machine of science fiction","robot"],
+["the Brazilian carnival city, ____ de Janeiro","rio","rio de janeiro"],
+["the flower given on Valentine's Day","rose"],
+["the rodent that deserted the sinking ship","rat"],
+["the Christmas animal that pulls Santa's sleigh","reindeer"]
+],
+S: [
+["the season after spring","summer"],
+["the star at the centre of our solar system","sun"],
+["the slow garden creature that carries its home on its back","snail"],
+["the legless reptile that slithers","snake"],
+["the country famous for flamenco and paella","spain"],
+["the William who wrote Romeo and Juliet","shakespeare","william shakespeare"],
+["the white flakes that fall in winter","snow"],
+["the planet famous for its rings","saturn"],
+["the cue sport with a maximum break of 147","snooker"],
+["the Egyptian monument with a lion's body and a human head","sphinx"],
+["the fish that swims upstream to spawn","salmon"],
+["the country containing Loch Ness","scotland"],
+["the eight-legged creature that spins a web","spider"],
+["the season when daffodils appear","spring"]
+],
+T: [
+["the big cat with stripes","tiger"],
+["the capital of Japan","tokyo"],
+["the liner that sank on her maiden voyage in 1912","titanic"],
+["the red salad fruit often mistaken for a vegetable","tomato"],
+["the slow reptile that famously beat the hare","tortoise"],
+["the drink made by infusing leaves in hot water","tea"],
+["the river that flows through London","thames"],
+["the folded Mexican snack in a corn shell","taco"],
+["the racket sport played at Wimbledon","tennis"],
+["what the Eiffel structure in Paris is","tower"],
+["the king of the dinosaurs, ____ rex","tyrannosaurus","t-rex","t rex"],
+["the country whose capital is Ankara, sharing a name with a bird","turkey"],
+["the brass instrument played with a slide","trombone"],
+["the vehicle that runs on rails through city streets","tram"]
+],
+U: [
+["the mythical horse with a single horn","unicorn"],
+["the device that keeps you dry in the rain","umbrella"],
+["the seventh planet from the sun","uranus"],
+["the country with fifty states","usa","united states","united states of america","america"],
+["the brother of your mother or father","uncle"],
+["the small four-stringed Hawaiian instrument","ukulele"],
+["the organisation of nations headquartered in New York, founded 1945","united nations","un"],
+["the opposite of down","up"],
+["the European country whose capital is Kyiv","ukraine"],
+["what something one of a kind is","unique"],
+["the institution where you study for a degree","university"],
+["where a U-boat travels, beneath the waves","underwater"],
+["the garment worn beneath your outer clothes","underwear"],
+["the standard measurement, like a metre or a second","unit"]
+],
+V: [
+["the planet known as the morning star","venus"],
+["the Italian city of canals and gondolas","venice"],
+["the mountain that erupts with lava","volcano"],
+["the smallest country in the world, home of the Pope","vatican","vatican city"],
+["the blood-sucking creature of Transylvania","vampire"],
+["the ice-cream flavour that comes from an orchid pod","vanilla"],
+["the stringed instrument played under the chin with a bow","violin"],
+["the queen who reigned from 1837 to 1901","victoria","queen victoria"],
+["the team sport played over a high net with the hands","volleyball"],
+["Leonardo da ____","vinci"],
+["the Scandinavian seafaring raiders of the Dark Ages","vikings","viking"],
+["the purple flower that shares its name with a shade","violet"],
+["the green edible plant group including carrots and cabbage","vegetables","vegetable"],
+["the sound made by your vocal cords","voice"]
+],
+W: [
+["the largest animal ever to have lived","whale","blue whale"],
+["the colour of snow and surrender flags","white"],
+["the tennis championships held in south-west London","wimbledon"],
+["the liquid covering seventy per cent of the Earth","water"],
+["the day in the middle of the working week","wednesday"],
+["the wild relative of the dog that howls at the moon","wolf"],
+["the Great one in China, or the Berlin one demolished in 1989","wall"],
+["the UK country whose capital is Cardiff","wales"],
+["the sticky trap spun by a spider","web"],
+["the 1815 battle where Napoleon was finally defeated","waterloo"],
+["the burrowing Australian marsupial with cube-shaped droppings","wombat"],
+["the season when snow falls","winter"],
+["the moving air that turns turbines and fills sails","wind"],
+["the grain milled into flour for bread","wheat"]
+],
+Y: [
+["the colour of bananas and the sun","yellow"],
+["the dairy product often eaten with fruit at breakfast","yoghurt","yogurt","yoghourt"],
+["the long-haired ox of the Himalayas","yak"],
+["the toy on a string that goes up and down","yo-yo","yoyo"],
+["the northern English city with a famous Minster","york"],
+["the Indian discipline of postures and breathing","yoga"],
+["a period of three hundred and sixty-five days","year"],
+["the yellow part of an egg","yolk"],
+["the US national park famous for geysers including Old Faithful","yellowstone"],
+["the unit of distance equal to three feet","yard"],
+["the abominable snowman of the Himalayas","yeti"],
+["the affirmative word, opposite of no","yes"],
+["the old word for Christmas, as in the festive log cake","yule"],
+["the day before today","yesterday"]
+]
+};
+
+// Gold Run bank: [initials, clue, full answer]. Answer's word initials match the hex label.
+const GOLDBANK = [
+["TOL","London fortress where the Crown Jewels are kept","Tower of London"],
+["MT","Famous humanitarian nun who worked in Calcutta","Mother Teresa"],
+["FAC","Deep-fried British seaside meal wrapped in paper","Fish And Chips"],
+["BB","London's famous clock bell","Big Ben"],
+["GWOC","Ancient fortification stretching thousands of miles across Asia","Great Wall Of China"],
+["RRH","Fairy-tale girl who met a wolf at grandmother's house","Red Riding Hood"],
+["SC","Jolly man who delivers presents on Christmas Eve","Santa Claus"],
+["LNM","Legendary creature said to lurk in a Scottish loch","Loch Ness Monster"],
+["WWW","The three letters that start most website addresses","World Wide Web"],
+["HAG","Fairy-tale siblings who found a gingerbread house","Hansel And Gretel"],
+["JATB","Pantomime tale of a boy, a cow and a giant vine","Jack And The Beanstalk"],
+["POW","Title traditionally held by the heir to the British throne","Prince Of Wales"],
+["MP","Lost city of the Incas high in the Peruvian Andes","Machu Picchu"],
+["ET","Iron landmark built in Paris in 1889","Eiffel Tower"],
+["SOL","New York statue holding a torch","Statue Of Liberty"],
+["GC","Vast Arizona gorge carved by the Colorado River","Grand Canyon"],
+["TM","White marble mausoleum in Agra, India","Taj Mahal"],
+["NP","The frozen spot at the very top of the world","North Pole"],
+["MW","The galaxy containing our solar system","Milky Way"],
+["GBR","Coral wonder off the coast of Queensland, Australia","Great Barrier Reef"],
+["BP","The monarch's official London residence","Buckingham Palace"],
+["HOP","Westminster home of the Commons and the Lords","Houses Of Parliament"],
+["RAJ","Shakespeare's star-crossed lovers","Romeo And Juliet"],
+["SW","Fairy-tale princess with seven small housemates","Snow White"],
+["PP","The boy who never grew up, friend of Tinker Bell","Peter Pan"],
+["WOO","The wonderful wizard visited by Dorothy","Wizard Of Oz"],
+["JB","Fictional secret agent with the code number 007","James Bond"],
+["SH","Baker Street detective in a deerstalker","Sherlock Holmes"],
+["HP","Boy wizard who attended Hogwarts","Harry Potter"],
+["MM","Disney's most famous rodent","Mickey Mouse"],
+["DD","Disney's short-tempered sailor-suited duck","Donald Duck"],
+["WTP","Honey-loving bear of the Hundred Acre Wood","Winnie The Pooh"],
+["TAJ","Cartoon cat-and-mouse rivals","Tom And Jerry"],
+["TBM","Nursery-rhyme rodent trio who ran after the farmer's wife","Three Blind Mice"],
+["HD","Egg-shaped character who had a great fall","Humpty Dumpty"],
+["LBP","Nursery-rhyme shepherdess who lost her sheep","Little Bo Peep"],
+["OM","Nursery-rhyme farmer, E-I-E-I-O","Old MacDonald"],
+["ML","Da Vinci portrait with an enigmatic smile","Mona Lisa"],
+["VG","Dutch painter of Sunflowers and The Starry Night","Vincent van Gogh"],
+["LDV","Renaissance master who painted The Last Supper","Leonardo Da Vinci"],
+["CC","Explorer who sailed the ocean blue in 1492","Christopher Columbus"],
+["NA","First man to set foot on the Moon","Neil Armstrong"],
+["AE","Wild-haired physicist of relativity fame","Albert Einstein"],
+["IN","Scientist inspired by a falling apple","Isaac Newton"],
+["CD","Naturalist who wrote On the Origin of Species","Charles Darwin"],
+["FN","The lady with the lamp","Florence Nightingale"],
+["WC","Wartime prime minister with a cigar and a V-sign","Winston Churchill"],
+["JOA","French peasant girl who led armies and became a saint","Joan Of Arc"],
+["KA","Legendary British king of the Round Table","King Arthur"],
+["RH","Outlaw of Sherwood Forest","Robin Hood"],
+["MC","The great charter King John sealed in 1215","Magna Carta"],
+["GGB","Red suspension bridge spanning San Francisco Bay","Golden Gate Bridge"],
+["ESB","New York skyscraper climbed by King Kong","Empire State Building"],
+["GFOL","The 1666 disaster that began in Pudding Lane","Great Fire Of London"],
+["BOB","The 1940 aerial battle fought over southern England","Battle Of Britain"],
+["TS","London square where Nelson stands on his column","Trafalgar Square"],
+["FC","Football's famous knockout competition, contested since 1871","FA Cup"],
+["NYE","The night of December the 31st","New Years Eve"],
+["WOTW","H.G. Wells novel about a Martian invasion","War Of The Worlds"],
+["AIW","Lewis Carroll tale of a girl who fell down a rabbit hole","Alice In Wonderland"],
+["CITH","Dr Seuss feline in striped headwear","Cat In The Hat"],
+["JC","Roman general assassinated on the Ides of March","Julius Caesar"],
+["QOS","Title of Mary, the tragic Stuart monarch — Mary, Queen of ____","Queen Of Scots"],
+["JF","Pantomime hero who climbed the beanstalk... no — the frost that paints winter windows, ____ Frost","Jack Frost"],
+["KK","Giant movie ape who climbed the Empire State Building","King Kong"],
+["PC","Fairy-tale prince who fitted the glass slipper on Cinderella... her title companion, Prince ____","Prince Charming"],
+["BA","The flying circus... no — Britain's flag-carrying airline","British Airways"],
+["OT","Dickens orphan who asked for more","Oliver Twist"],
+["CK","Superman's mild-mannered reporter alter ego","Clark Kent"],
+["DJ","The person who plays records at a party","Disc Jockey"],
+["FBI","America's federal crime-fighting bureau","Federal Bureau of Investigation","FBI"],
+["UFO","An unexplained light in the sky, allegedly from elsewhere","Unidentified Flying Object","UFO"],
+["VIP","A very important guest gets this three-letter treatment","Very Important Person","VIP"]
+];
+'use strict';
+/* ================================================================
+   Blockbusters Live — authentic 1983–93 ITV rules.
+   Host's browser = authoritative game server (PeerJS / WebRTC).
+   ================================================================ */
+const COLS = 5, ROWS = 4;
+const $ = id => document.getElementById(id);
+const other = t => t === 'blue' ? 'white' : 'blue';
+const TEAMNAME = { blue: 'Blue team', white: 'White' };
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+/* ===LOGIC=== */
+function idx(c,r){ return c*ROWS + r; }
+function colOf(i){ return Math.floor(i/ROWS); }
+function rowOf(i){ return i % ROWS; }
+function inB(c,r){ return c>=0 && c<COLS && r>=0 && r<ROWS; }
+// Flat-edged hexes in 5 columns of 4; odd columns shifted DOWN half a hex.
+function neighbors(i){
+  const c = colOf(i), r = rowOf(i), out = [];
+  const cand = [[c,r-1],[c,r+1]];
+  if (c % 2 === 0) cand.push([c-1,r-1],[c-1,r],[c+1,r-1],[c+1,r]);
+  else             cand.push([c-1,r],[c-1,r+1],[c+1,r],[c+1,r+1]);
+  for (const [cc,rr] of cand) if (inB(cc,rr)) out.push(idx(cc,rr));
+  return out;
+}
+// owners: array(20) of 'blue'|'white'|'gold'|'black'|null
+// team 'blue' connects col 0 -> col 4 ; 'white' connects row 0 -> row 3.
+// 'gold' uses blue geometry (left->right). Returns winning path array or null.
+function winPath(owners, team){
+  const want = team === 'white' ? 'white' : team; // 'blue'|'white'|'gold'
+  const isStart = i => team === 'white' ? rowOf(i) === 0 : colOf(i) === 0;
+  const isEnd   = i => team === 'white' ? rowOf(i) === ROWS-1 : colOf(i) === COLS-1;
+  const prev = new Array(COLS*ROWS).fill(undefined);
+  const queue = [];
+  for (let i=0;i<COLS*ROWS;i++) if (owners[i]===want && isStart(i)){ prev[i]=null; queue.push(i); }
+  while (queue.length){
+    const i = queue.shift();
+    if (isEnd(i)){ const path=[]; let p=i; while(p!==null){ path.push(p); p=prev[p]; } return path; }
+    for (const n of neighbors(i)) if (owners[n]===want && prev[n]===undefined){ prev[n]=i; queue.push(n); }
+  }
+  return null;
+}
+// Unclaimed hexes that would complete a connection for `team` if claimed.
+function oneAway(owners, team){
+  const out = [];
+  for (let i=0;i<COLS*ROWS;i++){
+    if (owners[i]) continue;
+    const test = owners.slice(); test[i] = team;
+    if (winPath(test, team)) out.push(i);
+  }
+  return out;
+}
+// Gold run: pickable hexes = unclaimed, not black, in col 0 or adjacent to a gold hex.
+function goldClickable(owners){
+  const out = [];
+  for (let i=0;i<COLS*ROWS;i++){
+    if (owners[i]) continue;
+    if (colOf(i)===0 || neighbors(i).some(n=>owners[n]==='gold')) out.push(i);
+  }
+  return out;
+}
+// Is a left-right route still possible through non-black hexes?
+function goldRoutePossible(owners){
+  const test = owners.map(o => o==='black' ? 'black' : 'gold');
+  return !!winPath(test, 'gold');
+}
+function normAns(s){
+  s = (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  s = s.replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+  s = s.replace(/^(the|a|an) /,'');
+  return s;
+}
+function lev(a,b){
+  if (Math.abs(a.length-b.length) > 2) return 99;
+  const m=a.length,n=b.length; let prev=Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){ const cur=[i];
+    for(let j=1;j<=n;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    prev=cur; }
+  return prev[n];
+}
+function matchAns(input, answers){
+  const inp = normAns(input);
+  if (!inp) return false;
+  for (const raw of answers){
+    const ans = normAns(raw);
+    if (!ans) continue;
+    if (inp === ans) return true;
+    const tol = ans.length >= 8 ? 2 : ans.length >= 5 ? 1 : 0;
+    if (tol && lev(inp, ans) <= tol) return true;
+  }
+  return false;
+}
+/* ===ENDLOGIC=== */
+
+/* ---------------- Audio ---------------- */
+const FX = {
+  ctx: null,
+  init(){ if (!this.ctx){ try { this.ctx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} } if (this.ctx && this.ctx.state==='suspended') this.ctx.resume(); },
+  tone(f, t0, dur, type='sine', vol=0.18){
+    if (!this.ctx) return;
+    const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+    o.type=type; o.frequency.value=f; o.connect(g); g.connect(this.ctx.destination);
+    const t=this.ctx.currentTime+t0;
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.start(t); o.stop(t+dur+0.05);
+  },
+  buzz(){ this.init(); this.tone(180,0,0.45,'sawtooth',0.22); this.tone(184,0,0.45,'square',0.12); },
+  right(){ this.init(); this.tone(660,0,0.12,'triangle'); this.tone(880,0.1,0.22,'triangle'); },
+  wrong(){ this.init(); this.tone(220,0,0.2,'square',0.14); this.tone(160,0.18,0.3,'square',0.14); },
+  pick(){ this.init(); this.tone(520,0,0.08,'triangle',0.12); },
+  jingle(){ this.init(); [523,659,784,1047,1319].forEach((f,n)=>this.tone(f,n*0.09,0.25,'triangle',0.16)); this.tone(1568,0.5,0.5,'triangle',0.18); },
+  horn(){ this.init(); this.tone(311,0,0.32,'sawtooth',0.2); this.tone(294,0.34,0.32,'sawtooth',0.2); this.tone(277,0.68,0.7,'sawtooth',0.22); },
+  tick(){ this.init(); this.tone(1200,0,0.03,'square',0.05); },
+  gold(){ this.init(); [392,523,659,784,1047,1319,1568].forEach((f,n)=>this.tone(f,n*0.08,0.3,'triangle',0.16)); },
+};
+
+/* ---------------- Speech (host screen, computer mode) ---------------- */
+let ttsVoice = null;
+function pickVoice(){
+  const vs = speechSynthesis.getVoices();
+  ttsVoice = vs.find(v=>/en[-_]GB/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang)) || null;
+}
+if ('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function speak(text){
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  if (ttsVoice) u.voice = ttsVoice;
+  u.rate = 0.98; u.pitch = 1.0;
+  speechSynthesis.speak(u);
+}
+
+/* ---------------- Question bank manager ---------------- */
+const Bank = {
+  pools: {}, gr: [],
+  q(letter){
+    if (!this.pools[letter] || !this.pools[letter].length) this.pools[letter] = shuffle(QBANK[letter].slice());
+    return this.pools[letter].pop(); // [clue, answer, ...alts]
+  },
+  grSet(n){
+    if (this.gr.length < n) this.gr = shuffle(GOLDBANK.slice());
+    return this.gr.splice(0, n); // [[init, clue, answer], ...]
+  }
+};
+function boardLetters(){ return shuffle(Object.keys(QBANK).slice()).slice(0, COLS*ROWS); }
+
+/* ---------------- Networking ---------------- */
+const ROOM_PREFIX = 'bbhx26-';
+const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function makeCode(){ let s=''; for(let i=0;i<5;i++) s += CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]; return s; }
+
+let role = null;            // 'host' | 'player'
+let peer = null;
+let roomCode = '';
+let conns = new Map();      // host: peerId -> conn
+let hostConn = null;        // player: conn to host
+let myName = '';
+let S = null;               // shared state (host authoritative; players hold latest copy)
+let secret = { answers: [], grAnswers: [] };  // host only
+let answerTimer = null, grInterval = null;
+
+function freshState(mode){
+  return {
+    phase: 'lobby', mode,
+    players: [],            // {id, name, team:'blue'|'white'|null, alive}
+    board: [], gameNo: 1,
+    games: { blue:0, white:0 }, money: { blue:0, white:0 },
+    picker: null,           // team that chooses next letter; null => toss-up
+    q: null,                // {hex, letter, clue, tossup}
+    buzz: { open:false, team:null, steal:false },
+    answerOpen: false, answerLeft: 0,
+    flash: { blue:[], white:[] }, winFlash: [],
+    status: '', statusKind: '',
+    gr: null,               // {runner:{id,name,team}, board:[{init,own}], t, running, cur, done, won, banked}
+    overlay: null,          // {title, body, kind, choices:[{label,act,arg}]} acts handled host-side
+  };
+}
+
+function bcast(){
+  if (role !== 'host') return;
+  const msg = JSON.stringify({ t:'state', s:S });
+  for (const c of conns.values()) if (c.open) c.send(msg);
+  render();
+}
+function evt(k, team, extra){
+  const e = { t:'evt', k, team, extra };
+  if (role === 'host'){ handleEvt(e); const m = JSON.stringify(e); for (const c of conns.values()) if (c.open) c.send(m); }
+}
+function sendHost(o){ if (hostConn && hostConn.open) hostConn.send(JSON.stringify(o)); }
+
+function hostCreate(mode){
+  roomCode = makeCode();
+  peer = new Peer(ROOM_PREFIX + roomCode.toLowerCase());
+  peer.on('open', ()=>{
+    role = 'host'; S = freshState(mode);
+    $('codeBox').textContent = roomCode;
+    const url = location.href.split('#')[0] + '#' + roomCode;
+    $('lobbyHint').innerHTML = 'Players: open <strong>' + url.replace(/^https?:\/\//,'') + '</strong> on a phone and join with the code.';
+    show('scrLobby'); render();
+  });
+  peer.on('connection', c=>{
+    c.on('open', ()=>conns.set(c.peer, c));
+    c.on('data', d=>{ try { onHostMsg(c, JSON.parse(d)); } catch(e){} });
+    c.on('close', ()=>{
+      const p = S && S.players.find(p=>p.id===c.peer);
+      if (p){ p.alive = false; bcast(); }
+      conns.delete(c.peer);
+    });
+  });
+  peer.on('error', e=>fail('landErr', 'Connection error: ' + e.type + '. Try again.'));
+}
+
+function playerJoin(code, name){
+  roomCode = code;
+  peer = new Peer();
+  peer.on('open', ()=>{
+    hostConn = peer.connect(ROOM_PREFIX + code.toLowerCase(), { reliable:true });
+    hostConn.on('open', ()=>{ role = 'player'; myName = name; sendHost({ t:'join', name }); });
+    hostConn.on('data', d=>{ try { onPlayerMsg(JSON.parse(d)); } catch(e){} });
+    hostConn.on('close', ()=>{ fail('landErr','Lost connection to the host.'); show('scrLanding'); });
+    setTimeout(()=>{ if (!hostConn.open) fail('landErr','Could not find that room. Check the code.'); }, 8000);
+  });
+  peer.on('error', e=>fail('landErr', e.type==='peer-unavailable' ? 'Room not found — check the code.' : 'Connection error: '+e.type));
+}
+function fail(id, msg){ $(id).textContent = msg; }
+
+/* -------- host: inbound messages -------- */
+function onHostMsg(c, m){
+  if (m.t === 'join'){
+    let p = S.players.find(p=>!p.alive && p.name.toLowerCase() === m.name.toLowerCase());
+    if (p){ p.id = c.peer; p.alive = true; }                  // reclaim seat on rejoin
+    else { p = { id:c.peer, name:m.name, team:null, alive:true }; S.players.push(p); }
+    bcast(); return;
+  }
+  const p = S.players.find(p=>p.id===c.peer);
+  if (!p) return;
+  switch (m.t){
+    case 'team': {
+      if (S.phase !== 'lobby') break;
+      if (m.team === 'blue' && S.players.filter(x=>x.team==='blue' && x.alive).length >= 2) break;
+      if (m.team === 'white' && S.players.filter(x=>x.team==='white' && x.alive).length >= 1) break;
+      p.team = m.team; bcast(); break;
+    }
+    case 'buzz':   hostBuzz(p.team); break;
+    case 'pick':   hostPick(p.team, m.i); break;
+    case 'ans':    hostAnswer(p, m.text); break;
+    case 'grpick': hostGrPick(p, m.i); break;
+    case 'grans':  hostGrAnswer(p, m.text); break;
+    case 'grpass': if (S.gr && S.gr.runner.id===p.id) hostGrJudge(false); break;
+  }
+}
+/* -------- player: inbound messages -------- */
+function onPlayerMsg(m){
+  if (m.t === 'state'){ S = m.s; render(); }
+  else if (m.t === 'evt') handleEvt(m);
+}
+function handleEvt(e){
+  switch (e.k){
+    case 'buzz':   FX.buzz(); banner(e.team); break;
+    case 'right':  FX.right(); break;
+    case 'wrong':  FX.wrong(); break;
+    case 'pick':   FX.pick(); break;
+    case 'jingle': FX.jingle(); break;
+    case 'horn':   FX.horn(); break;
+    case 'gold':   FX.gold(); break;
+    case 'tick':   FX.tick(); break;
+  }
+}
+function banner(team){
+  const b = $('buzzBanner');
+  b.className = 'buzz-banner show ' + team;
+  b.textContent = (team==='blue'?'BLUE':'WHITE') + ' BUZZED!';
+  clearTimeout(banner._t); banner._t = setTimeout(()=>b.classList.remove('show'), 1600);
+}
+
+/* ================= HOST GAME ENGINE ================= */
+function teamPlayers(t){ return S.players.filter(p=>p.team===t); }
+function setStatus(txt, kind){ S.status = txt; S.statusKind = kind||''; }
+
+function hostStartMatch(){
+  S.games = { blue:0, white:0 }; S.money = { blue:0, white:0 }; S.gameNo = 1;
+  S.gr = null; S.overlay = null;
+  hostNewBoard();
+}
+function hostNewBoard(){
+  const letters = boardLetters();
+  S.board = letters.map(l=>({ l, own:null }));
+  S.picker = null; S.q = null; S.winFlash = [];
+  S.flash = { blue:[], white:[] };
+  S.buzz = { open:false, team:null, steal:false }; S.answerOpen = false;
+  S.phase = 'play';
+  // Opening toss-up on a random hex, just like the show's first question.
+  const i = Math.floor(Math.random() * S.board.length);
+  hostAsk(i, true);
+}
+function hostAsk(i, tossup){
+  const cell = S.board[i];
+  const qa = Bank.q(cell.l);
+  secret.answers = qa.slice(1);
+  S.q = { hex:i, letter:cell.l, clue:qa[0], tossup:!!tossup };
+  S.buzz = { open:true, team:null, steal:false };
+  S.answerOpen = false; S.qResult = '';
+  clearTimeout(answerTimer);
+  setStatus(tossup ? 'Toss-up question — buzz in!' : TEAMNAME[S.picker] + ' chose ' + cell.l + ' — buzz in!', '');
+  bcast();
+  if (S.mode === 'computer') speak('What ' + cell.l + '... ' + qa[0] + '?');
+}
+function hostBuzz(team){
+  if (!S || S.phase!=='play' || !S.q || !S.buzz.open || !team) return;
+  S.buzz.open = false; S.buzz.team = team;
+  evt('buzz', team);
+  openAnswerWindow(team);
+  bcast();
+}
+function openAnswerWindow(team){
+  S.answerOpen = true;
+  if (S.mode === 'computer'){
+    S.answerLeft = 20;
+    clearTimeout(answerTimer);
+    const tickFn = ()=>{
+      S.answerLeft--;
+      if (S.answerLeft <= 0){ hostJudge(false, '(no answer in time)'); }
+      else { answerTimer = setTimeout(tickFn, 1000); bcast(); }
+    };
+    answerTimer = setTimeout(tickFn, 1000);
+    setStatus(TEAMNAME[team] + ' — type your answer!', '');
+  } else {
+    setStatus(TEAMNAME[team] + ' — answer out loud! Host judges.', '');
+  }
+}
+function hostAnswer(p, text){
+  if (!S.answerOpen || !S.q || p.team !== S.buzz.team || S.mode !== 'computer') return;
+  hostJudge(matchAns(text, secret.answers), text);
+}
+function hostJudge(correct, givenText){
+  if (!S.q || !S.buzz.team) return;
+  clearTimeout(answerTimer);
+  S.answerOpen = false;
+  const team = S.buzz.team;
+  if (correct){
+    S.board[S.q.hex].own = team;
+    S.money[team] += 5;
+    S.qResult = { kind:'right', text:(givenText? '“'+givenText+'” — correct!' : 'Correct!') + (S.mode==='computer'?'':' '+(secret.answers[0]||'')) };
+    evt('right', team);
+    S.q = null; S.buzz = { open:false, team:null, steal:false };
+    const path = winPath(S.board.map(c=>c.own), team);
+    if (path){ hostGameWon(team, path); return; }
+    S.picker = team;
+    S.flash = { blue: oneAway(S.board.map(c=>c.own),'blue'), white: oneAway(S.board.map(c=>c.own),'white') };
+    setStatus(TEAMNAME[team] + ' — pick the next letter.', 'good');
+    bcast();
+  } else {
+    evt('wrong', team);
+    if (!S.buzz.steal){
+      // offer to the other side (host re-reads in quizmaster mode)
+      S.buzz.steal = true; S.buzz.team = other(team);
+      S.qResult = { kind:'wrong', text:(givenText?'“'+givenText+'” — no. ':'No. ') + 'Over to ' + TEAMNAME[other(team)] + '…' };
+      openAnswerWindow(other(team));
+      bcast();
+      if (S.mode === 'computer') speak('Incorrect. ' + TEAMNAME[other(team)] + '. What ' + S.q.letter + '... ' + S.q.clue + '?');
+    } else {
+      // both sides missed: fresh question, same letter, buzzers open
+      S.qResult = { kind:'wrong', text:'Nobody got it — new question, same letter!' };
+      const hex = S.q.hex;
+      bcast();
+      setTimeout(()=>hostAsk(hex, S.q ? S.q.tossup : false), 1400);
+    }
+  }
+}
+function hostPick(team, i){
+  if (!S || S.phase!=='play' || S.q || S.picker===null) return;
+  if (team !== S.picker && team !== 'HOST') return;
+  if (!S.board[i] || S.board[i].own) return;
+  evt('pick');
+  hostAsk(i, false);
+}
+function hostGameWon(team, path){
+  S.winFlash = path; S.phase = 'gamewon';
+  S.games[team]++;
+  evt('jingle', team);
+  setStatus('That\'s Blockbusters! ' + TEAMNAME[team] + ' make the connection!', 'gold');
+  const matchWon = S.games[team] >= 2;
+  if (matchWon){
+    S.overlay = { kind:'matchwon', title:'That\'s Blockbusters!',
+      body: TEAMNAME[team] + ' win the match ' + S.games.blue + '–' + S.games.white + ' and head to the GOLD RUN!',
+      choices: team==='blue'
+        ? teamPlayers('blue').map(p=>({ label:'Put ' + p.name + ' on the Hot Spot', act:'goldrun', arg:p.id }))
+        : [{ label:'Put ' + (teamPlayers('white')[0]?teamPlayers('white')[0].name:'White') + ' on the Hot Spot', act:'goldrun', arg:(teamPlayers('white')[0]||{}).id }] };
+  } else {
+    S.overlay = { kind:'gamewon', title:'That\'s Blockbusters!',
+      body: TEAMNAME[team] + ' take game ' + S.gameNo + '. Score: Blue ' + S.games.blue + ' – ' + S.games.white + ' White.',
+      choices: [{ label:'Next game', act:'nextgame' }] };
+  }
+  bcast();
+}
+function hostOverlayChoice(act, arg){
+  if (act === 'nextgame'){ S.gameNo++; S.overlay = null; hostNewBoard(); }
+  else if (act === 'goldrun'){ S.overlay = null; hostGoldSetup(arg); }
+  else if (act === 'rematch'){ hostStartMatch(); }
+  else if (act === 'lobby'){ S.phase='lobby'; S.overlay=null; S.q=null; S.gr=null; bcast(); }
+}
+/* ---------- Gold Run ---------- */
+function hostGoldSetup(runnerId){
+  const p = S.players.find(x=>x.id===runnerId) || teamPlayers('white')[0] || S.players[0];
+  const set = Bank.grSet(COLS*ROWS);
+  secret.grAnswers = set.map(e=>[e[2]].concat(e.slice(3)||[]));
+  S.gr = {
+    runner: { id:p?p.id:null, name:p?p.name:'?', team:p?p.team:null },
+    board: set.map(e=>({ init:e[0], clue:e[1], own:null })),
+    t: 60, running: false, done: false, won: false, cur: null, banked: 0,
+  };
+  S.phase = 'goldrun';
+  setStatus('', '');
+  bcast();
+  if (S.mode === 'computer') speak((p?p.name:'Player') + ', put yourself on the Hot Spot. Gold to gold, left to right, sixty seconds. Good luck!');
+}
+function hostGrStart(){
+  if (!S.gr || S.gr.running || S.gr.done) return;
+  S.gr.running = true;
+  clearInterval(grInterval);
+  grInterval = setInterval(()=>{
+    if (!S.gr || S.gr.done){ clearInterval(grInterval); return; }
+    S.gr.t--;
+    if (S.gr.t <= 10 && S.gr.t > 0) evt('tick');
+    if (S.gr.t <= 0) hostGrEnd(false);
+    else bcast();
+  }, 1000);
+  bcast();
+}
+function hostGrPick(p, i){
+  if (!S.gr || !S.gr.running || S.gr.done || S.gr.cur !== null) return;
+  if (p !== 'HOST' && (!p || p.id !== S.gr.runner.id)) return;
+  const owners = S.gr.board.map(c=>c.own);
+  if (!goldClickable(owners).includes(i)) return;
+  S.gr.cur = i;
+  evt('pick');
+  bcast();
+  if (S.mode === 'computer') speak(S.gr.board[i].init.split('').join(' ') + '. ' + S.gr.board[i].clue + '?');
+}
+function hostGrAnswer(p, text){
+  if (!S.gr || S.gr.cur===null || S.mode!=='computer') return;
+  if (!p || p.id !== S.gr.runner.id) return;
+  if (matchAns(text, secret.grAnswers[S.gr.cur])) hostGrJudge(true);
+  else { S.gr.miss = '“' + text + '” — not it. Try again or pass!'; bcast(); }
+}
+function hostGrJudge(correct){
+  if (!S.gr || S.gr.cur===null || S.gr.done) return;
+  const i = S.gr.cur;
+  S.gr.board[i].own = correct ? 'gold' : 'black';
+  S.gr.cur = null; S.gr.miss = '';
+  evt(correct ? 'right' : 'wrong');
+  const owners = S.gr.board.map(c=>c.own);
+  if (correct && winPath(owners, 'gold')){ hostGrEnd(true); return; }
+  if (!correct && !goldRoutePossible(owners)){ hostGrEnd(false); return; }
+  bcast();
+}
+function hostGrEnd(won){
+  if (!S.gr || S.gr.done) return;
+  clearInterval(grInterval); clearTimeout(answerTimer);
+  S.gr.done = true; S.gr.won = won; S.gr.running = false; S.gr.cur = null;
+  const golds = S.gr.board.filter(c=>c.own==='gold').length;
+  const team = S.gr.runner.team;
+  if (won){ if (team) S.money[team] += 200; evt('gold'); }
+  else { S.gr.banked = golds * 10; if (team) S.money[team] += golds * 10; evt('horn'); }
+  S.overlay = {
+    kind:'goldend',
+    title: won ? 'GOLD RUN COMPLETE!' : 'Out of time!',
+    body: won
+      ? S.gr.runner.name + ' goes gold to gold — the star prize (and £200) is theirs!'
+      : S.gr.runner.name + ' claimed ' + golds + ' gold hex' + (golds===1?'':'es') + ' — that\'s £' + (golds*10) + ' (£10 apiece).',
+    choices: [{ label:'Rematch — same teams', act:'rematch' }, { label:'Back to lobby', act:'lobby' }]
+  };
+  bcast();
+  if (S.mode === 'computer') speak(won ? 'That is a gold run! Magnificent!' : 'Oh, so close. Time is up.');
+}
+
+/* ================= RENDERING ================= */
+function show(id){ document.querySelectorAll('section.scr').forEach(s=>s.classList.remove('show')); $(id).classList.add('show'); }
+function me(){ return role==='player' && S ? S.players.find(p=>p.id===peer.id) : null; }
+function myTeam(){ const m = me(); return m ? m.team : null; }
+function isHost(){ return role === 'host'; }
+
+function render(){
+  if (!S) return;
+  $('hostTools').style.display = isHost() && (S.phase==='play'||S.phase==='gamewon') ? 'flex' : 'none';
+  if (S.phase === 'lobby') renderLobby();
+  else if (S.phase === 'goldrun') renderGold();
+  else renderGame();
+  renderOverlay();
+}
+
+function renderLobby(){
+  show('scrLobby');
+  $('codeBox').textContent = roomCode;
+  const lists = { blue:$('listBlue'), white:$('listWhite'), none:$('listNone') };
+  Object.values(lists).forEach(el=>el.innerHTML='');
+  for (const p of S.players){
+    const el = document.createElement('div'); el.className = 'pchip';
+    let html = '<span>' + esc(p.name)
+      + (role==='player' && p.id===peer.id ? '<span class="you">YOU</span>' : '')
+      + (!p.alive ? '<span class="off">OFFLINE</span>' : '') + '</span>';
+    if (isHost()){
+      html += '<span><button class="ghost" data-cycle="' + p.id + '">&#8644; team</button></span>';
+    }
+    el.innerHTML = html;
+    lists[p.team || 'none'].appendChild(el);
+  }
+  if (isHost()){
+    document.querySelectorAll('[data-cycle]').forEach(b=>b.onclick = ()=>{
+      const p = S.players.find(x=>x.id===b.dataset.cycle); if (!p) return;
+      const order = [null,'blue','white'];
+      let n = order[(order.indexOf(p.team)+1)%3];
+      if (n==='blue' && teamPlayers('blue').length>=2) n='white';
+      if (n==='white' && teamPlayers('white').length>=1) n=null;
+      p.team = n; bcast();
+    });
+    const ok = teamPlayers('blue').length>=1 && teamPlayers('white').length>=1;
+    $('btnStart').style.display = 'inline-block';
+    $('btnStart').disabled = !ok;
+    $('lobbyErr').textContent = ok ? '' : 'Need at least 1 player on each team (Blue is built for 2).';
+  } else {
+    $('btnStart').style.display = 'none';
+    $('myTeamPick').style.display = 'flex';
+    $('lobbyHint').textContent = 'Pick your team, then wait for the host to start.';
+  }
+}
+
+function renderGame(){
+  show('scrGame');
+  // panels
+  $('namesBlue').textContent = teamPlayers('blue').map(p=>p.name + (p.alive?'':' (off)')).join(' & ') || '—';
+  $('namesWhite').textContent = teamPlayers('white').map(p=>p.name + (p.alive?'':' (off)')).join(' & ') || '—';
+  $('moneyBlue').textContent = '£' + S.money.blue;
+  $('moneyWhite').textContent = '£' + S.money.white;
+  dots($('dotsBlue'), S.games.blue); dots($('dotsWhite'), S.games.white);
+  $('gameNo').textContent = 'Game ' + S.gameNo + ' · first to 2';
+  $('panelBlue').classList.toggle('active-turn', S.picker==='blue' && !S.q);
+  $('panelWhite').classList.toggle('active-turn', S.picker==='white' && !S.q);
+  const st = $('statusLine'); st.textContent = S.status || ''; st.className = 'status ' + (S.statusKind||'');
+
+  // question card
+  const q = S.q;
+  $('qWho').textContent = q ? (q.tossup ? 'Toss-up — first on the buzzer' :
+      (S.buzz.team ? TEAMNAME[S.buzz.team] + (S.buzz.steal?' — for the steal':' on the buzzer') : 'Buzzers open')) :
+      (S.picker ? TEAMNAME[S.picker] + ' to choose a letter' : '');
+  $('qLetter').textContent = q ? q.letter : '';
+  $('qPrompt').innerHTML = q ? 'What <em style="color:var(--gold);font-style:normal;font-weight:800">' + q.letter + '</em> is ' + esc(q.clue) + '?' :
+      (S.picker ? 'Waiting for ' + TEAMNAME[S.picker] + ' to pick a hexagon…' : '');
+  const ansEl = $('qAnswer');
+  if (isHost() && S.mode==='quizmaster' && q){ ansEl.classList.add('show'); ansEl.textContent = 'Answer: ' + secret.answers.join(' / '); }
+  else ansEl.classList.remove('show');
+  $('qTimer').textContent = (S.mode==='computer' && S.answerOpen && S.answerLeft>0) ? S.answerLeft + 's' : '';
+
+  const res = $('qResult');
+  if (S.qResult){ res.textContent = S.qResult.text; res.className = 'qresult ' + (S.qResult.kind==='right'?'right':'wrong'); }
+  else { res.textContent=''; res.className='qresult'; }
+
+  // typed answer input: only the buzzed team, computer mode
+  const canType = role==='player' && S.mode==='computer' && S.answerOpen && myTeam()===S.buzz.team;
+  $('qInputRow').style.display = canType ? 'flex' : 'none';
+  if (canType && render._lastType !== (S.buzz.team + S.buzz.steal + (q?q.hex:''))){
+    render._lastType = S.buzz.team + S.buzz.steal + (q?q.hex:'');
+    $('qInput').value = ''; setTimeout(()=>$('qInput').focus(), 60);
+  }
+  // judge buttons: host while an answer window is open (overrule allowed in computer mode too)
+  $('judgeRow').style.display = (isHost() && S.answerOpen) ? 'flex' : 'none';
+  $('hostExtra').style.display = isHost() && q ? 'flex' : 'none';
+  $('btnReread').style.display = S.mode==='computer' ? 'inline-block' : 'none';
+
+  // buzzer
+  const zone = $('buzzZone');
+  const inTeam = role==='player' && !!myTeam();
+  zone.classList.toggle('show', inTeam && (S.phase==='play'));
+  const btn = $('buzzBtn');
+  const canBuzz = inTeam && q && S.buzz.open;
+  btn.disabled = !canBuzz;
+  btn.classList.toggle('mine', S.buzz.team===myTeam() && !!S.buzz.team);
+  btn.textContent = S.buzz.team ? (S.buzz.team===myTeam() ? 'YOUR TEAM!' : 'TOO SLOW') : 'BUZZ';
+
+  drawBoard($('boardSvg'), S.board.map(c=>({ label:c.l, own:c.own })), {
+    clickable: clickableMainHexes(),
+    flash: flashSet(),
+    live: q ? q.hex : -1,
+    edges: true,
+    onClick: i => {
+      if (isHost()) hostPick('HOST', i);
+      else sendHost({ t:'pick', i });
+    }
+  });
+}
+function clickableMainHexes(){
+  if (!S || S.phase!=='play' || S.q || S.picker===null) return [];
+  const can = isHost() || myTeam()===S.picker;
+  return can ? S.board.map((c,i)=>c.own?-1:i).filter(i=>i>=0) : [];
+}
+function flashSet(){
+  if (S.winFlash && S.winFlash.length) return S.winFlash;
+  const out = [];
+  if (S.flash){ out.push(...(S.flash.blue||[]), ...(S.flash.white||[])); }
+  return out;
+}
+function dots(el, n){
+  el.innerHTML = '';
+  for (let i=0;i<2;i++){ const d=document.createElement('span'); d.className='gdot'+(i<n?' won':''); el.appendChild(d); }
+}
+
+function renderGold(){
+  show('scrGold');
+  const gr = S.gr; if (!gr) return;
+  const t = $('grTimer'); t.textContent = gr.t;
+  t.classList.toggle('low', gr.t<=10 && gr.running);
+  $('grWho').textContent = gr.runner.name + ' (' + (gr.runner.team==='blue'?'Blue':'White') + ')';
+  const iAmRunner = role==='player' && gr.runner.id===peer.id;
+  const cur = gr.cur;
+  $('grInitials').textContent = cur!==null ? gr.board[cur].init : '';
+  $('grState').textContent = gr.done ? (gr.won?'GOLD RUN!':'Time up') :
+    !gr.running ? 'Waiting for the clock…' :
+    cur!==null ? 'Answer or pass' : (iAmRunner ? 'Pick your next hex!' : gr.runner.name + ' is choosing…');
+  $('grPrompt').textContent = cur!==null ? gr.board[cur].clue :
+    gr.running ? 'Initials only — connect left to right.' :
+    (isHost() ? 'Hit Start when everyone\'s ready.' : 'Get ready…');
+  const ga = $('grAnswer');
+  if (isHost() && S.mode==='quizmaster' && cur!==null){ ga.classList.add('show'); ga.textContent = 'Answer: ' + (secret.grAnswers[cur]||[]).join(' / '); }
+  else ga.classList.remove('show');
+  $('grResult').textContent = gr.miss || '';
+  $('grResult').className = 'qresult wrong';
+
+  $('grInputRow').style.display = (S.mode==='computer' && iAmRunner && cur!==null && !gr.done) ? 'flex' : 'none';
+  // judge row: host always; the runner also gets the Pass button in computer mode
+  const showJudge = cur!==null && !gr.done && (isHost() || (S.mode==='computer' && iAmRunner));
+  $('grJudgeRow').style.display = showJudge ? 'flex' : 'none';
+  $('grRight').style.display = isHost() ? '' : 'none';
+  $('grHostExtra').style.display = (isHost() && !gr.running && !gr.done) ? 'flex' : 'none';
+  $('buzzZone').classList.remove('show');
+
+  const owners = gr.board.map(c=>c.own);
+  const pickable = (gr.running && !gr.done && cur===null && (isHost() || iAmRunner)) ? goldClickable(owners) : [];
+  drawBoard($('goldSvg'), gr.board.map(c=>({ label:c.init, own:c.own==='gold'?'goldwon':c.own })), {
+    clickable: pickable,
+    flash: gr.done && gr.won ? winPath(owners,'gold') || [] : [],
+    live: cur===null?-1:cur,
+    edges: 'gold',
+    onClick: i => { if (isHost()) hostGrPick('HOST', i); else sendHost({ t:'grpick', i }); }
+  });
+}
+
+function renderOverlay(){
+  const o = S.overlay;
+  const ov = $('overlay');
+  if (!o){ ov.classList.remove('show'); return; }
+  ov.classList.add('show');
+  $('ovTitle').textContent = o.title;
+  $('ovTitle').className = o.kind==='goldend' || o.kind==='matchwon' ? 'gold' : '';
+  $('ovBody').textContent = o.body;
+  const bx = $('ovButtons'); bx.innerHTML = '';
+  if (isHost()){
+    for (const ch of o.choices){
+      const b = document.createElement('button');
+      b.textContent = ch.label;
+      b.onclick = ()=>hostOverlayChoice(ch.act, ch.arg);
+      bx.appendChild(b);
+    }
+  } else {
+    bx.innerHTML = '<span style="color:var(--text-faint);font-size:13px">Waiting for the host…</span>';
+  }
+}
+
+/* ---------------- SVG board ---------------- */
+function drawBoard(svg, cells, opts){
+  const W = 132, H = 96, X0 = 64, Y0 = 60;
+  const colX = c => X0 + c * 0.75 * W;
+  const rowY = (c,r) => Y0 + r * H + (c%2 ? H/2 : 0);
+  const totW = X0*2 + 0.75*W*(COLS-1) + W/2;
+  const totH = Y0*2 + H*ROWS + H/2 - H/2 + 20;
+  svg.setAttribute('viewBox', '0 0 ' + Math.round(totW) + ' ' + Math.round(Y0*2 + H*(ROWS) + H/2));
+  let defs = '<defs>'
+    + '<linearGradient id="gBlue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a7bd5"/><stop offset="1" stop-color="#1b3f8f"/></linearGradient>'
+    + '<linearGradient id="gWhite" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e9e0bb"/></linearGradient>'
+    + '<linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#f0b53e"/></linearGradient>'
+    + '</defs>';
+  let out = defs;
+  // edge markers
+  const midY = Y0 + (H*ROWS)/2 - H/2 + H/4;
+  if (opts.edges){
+    const goldRun = opts.edges === 'gold';
+    const lcol = goldRun ? '#ffd77a' : '#5b9ad9', rcol = lcol;
+    out += '<text class="edgelab" x="18" y="' + midY + '" fill="' + lcol + '" transform="rotate(-90 18 ' + midY + ')">' + (goldRun?'GOLD':'BLUE') + '</text>';
+    out += '<text class="edgelab" x="' + (totW-18) + '" y="' + midY + '" fill="' + rcol + '" transform="rotate(90 ' + (totW-18) + ' ' + midY + ')">' + (goldRun?'GOLD':'BLUE') + '</text>';
+    if (!goldRun){
+      out += '<text class="edgelab" x="' + totW/2 + '" y="16" fill="#fdf8e2">WHITE</text>';
+      out += '<text class="edgelab" x="' + totW/2 + '" y="' + (Y0*2 + H*ROWS + H/2 - 10) + '" fill="#fdf8e2">WHITE</text>';
+    }
+  }
+  for (let i=0;i<cells.length;i++){
+    const c = colOf(i), r = rowOf(i);
+    const x = colX(c), y = rowY(c,r);
+    const pts = [[-W/2,0],[-W/4,-H/2],[W/4,-H/2],[W/2,0],[W/4,H/2],[-W/4,H/2]]
+      .map(p=>(x+p[0]).toFixed(1)+','+(y+p[1]).toFixed(1)).join(' ');
+    const cls = ['hex'];
+    if (cells[i].own) cls.push(cells[i].own);
+    if (opts.clickable.includes(i)) cls.push('clickable');
+    if ((opts.flash||[]).includes(i)) cls.push('flashpath');
+    if (opts.live === i) cls.push('live');
+    const fs = cells[i].label.length > 2 ? (cells[i].label.length > 3 ? 26 : 32) : 40;
+    out += '<g class="' + cls.join(' ') + '" data-i="' + i + '"><polygon class="hbg" points="' + pts + '"/>'
+        + '<text x="' + x + '" y="' + (y+2) + '" font-size="' + fs + '">' + esc(cells[i].label) + '</text></g>';
+  }
+  svg.innerHTML = out;
+  svg.querySelectorAll('g.hex.clickable').forEach(g=>{
+    g.addEventListener('click', ()=>opts.onClick(parseInt(g.dataset.i,10)));
+  });
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ================= UI WIRING ================= */
+let chosenMode = 'quizmaster';
+$('modeQuiz').onclick = ()=>{ chosenMode='quizmaster'; $('modeQuiz').classList.add('active'); $('modeCpu').classList.remove('active'); };
+$('modeCpu').onclick  = ()=>{ chosenMode='computer'; $('modeCpu').classList.add('active'); $('modeQuiz').classList.remove('active'); };
+$('btnHost').onclick = ()=>{ FX.init(); $('landErr').textContent=''; hostCreate(chosenMode); };
+$('btnJoin').onclick = ()=>{
+  FX.init();
+  const name = $('joinName').value.trim(), code = $('joinCode').value.trim().toUpperCase();
+  if (!name) return fail('landErr','Enter your name first.');
+  if (code.length !== 5) return fail('landErr','Room codes are 5 characters.');
+  $('landErr').textContent = 'Connecting…';
+  playerJoin(code, name);
+};
+if (location.hash.length === 6) $('joinCode').value = location.hash.slice(1).toUpperCase();
+
+$('pickBlue').onclick  = ()=>sendHost({ t:'team', team:'blue' });
+$('pickWhite').onclick = ()=>sendHost({ t:'team', team:'white' });
+$('pickSpec').onclick  = ()=>sendHost({ t:'team', team:null });
+$('btnStart').onclick  = ()=>{ if (isHost()) hostStartMatch(); };
+
+$('buzzBtn').onclick = ()=>{ FX.init(); sendHost({ t:'buzz' }); };
+window.addEventListener('keydown', e=>{
+  if (e.code==='Space' && role==='player' && S && S.phase==='play' && S.buzz && S.buzz.open
+      && document.activeElement.tagName !== 'INPUT'){ e.preventDefault(); FX.init(); sendHost({ t:'buzz' }); }
+});
+
+$('qSubmit').onclick = submitAnswer;
+$('qInput').addEventListener('keydown', e=>{ if (e.key==='Enter') submitAnswer(); });
+function submitAnswer(){
+  const v = $('qInput').value.trim(); if (!v) return;
+  $('qInput').value = '';
+  sendHost({ t:'ans', text:v });
+}
+$('btnRight').onclick = ()=>hostJudge(true);
+$('btnWrong').onclick = ()=>hostJudge(false);
+$('btnReread').onclick = ()=>{ if (S && S.q) speak('What ' + S.q.letter + '... ' + S.q.clue + '?'); };
+$('btnSkipQ').onclick = ()=>{ if (S && S.q){ const h=S.q.hex, t=S.q.tossup; S.qResult={kind:'wrong',text:'Question skipped — new one coming up.'}; hostAsk(h, t); } };
+
+$('grStart').onclick = ()=>hostGrStart();
+$('grRight').onclick = ()=>hostGrJudge(true);
+$('grPass').onclick  = ()=>{ if (isHost()) hostGrJudge(false); else sendHost({ t:'grpass' }); };
+$('grSubmit').onclick = submitGr;
+$('grInput').addEventListener('keydown', e=>{ if (e.key==='Enter') submitGr(); });
+function submitGr(){
+  const v = $('grInput').value.trim(); if (!v) return;
+  $('grInput').value = '';
+  sendHost({ t:'grans', text:v });
+}
+$('htNewGame').onclick = ()=>{ if (confirm('Abandon this board and deal a new one?')) hostNewBoard(); };
+$('htEndMatch').onclick = ()=>{
+  const lead = S.games.blue===S.games.white ? (S.money.blue>=S.money.white?'blue':'white') : (S.games.blue>S.games.white?'blue':'white');
+  S.overlay = { kind:'matchwon', title:'Straight to the Gold Run', body:'Host has ended the match — ' + TEAMNAME[lead] + ' go through.',
+    choices: teamPlayers(lead).length ? teamPlayers(lead).map(p=>({label:'Put ' + p.name + ' on the Hot Spot', act:'goldrun', arg:p.id})) : [{label:'Continue', act:'lobby'}] };
+  bcast();
+};
+$('htLobby').onclick = ()=>{ if (confirm('Send everyone back to the lobby?')) hostOverlayChoice('lobby'); };
+
+document.body.addEventListener('click', ()=>FX.init(), { once:true });
+</script>
+</body>
+</html>

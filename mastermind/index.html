@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mastermind</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{--bg-0:#0b0f1e;--bg-1:#131831;--bg-2:#1a2040;--surface:#1d2442;--surface-2:#252c52;--surface-hi:#2e376a;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.14);--text:#eef1ff;--text-dim:rgba(238,241,255,0.62);--text-faint:rgba(238,241,255,0.38);--accent:#6ac9ff;--accent-2:#9a7bff;--accent-grad:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);--success:#3ed598;--gold:#ffd77a;--danger:#ff6b6b;--warn:#ffb86c;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--shadow-sm:0 2px 8px rgba(0,0,0,0.25);--shadow-md:0 8px 24px rgba(0,0,0,0.35);--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--font-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;--ease:cubic-bezier(0.4,0,0.2,1);}
+*{box-sizing:border-box;}html,body{height:100%;}
+body{margin:0;font-family:var(--font-sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px;background:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(154,123,255,0.14),transparent 60%),radial-gradient(ellipse 60% 60% at 80% 100%,rgba(106,201,255,0.1),transparent 60%),linear-gradient(180deg,var(--bg-1) 0%,var(--bg-0) 100%);background-attachment:fixed;}
+h1{margin:0 0 8px;font-size:32px;font-weight:700;letter-spacing:-0.02em;color:var(--text);}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){h1{background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}}
+h2{margin:0 0 12px;font-size:22px;font-weight:600;}h3{margin:0 0 8px;font-size:18px;font-weight:600;}
+.sub{color:var(--text-dim);margin:0 0 24px;font-size:15px;text-align:center;max-width:560px;}
+.back-link{position:fixed;top:20px;left:20px;color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:8px 14px;border-radius:var(--r-sm);background:rgba(29,36,66,0.7);border:1px solid var(--border);transition:all 0.2s var(--ease);z-index:10;}
+.back-link:hover{color:var(--text);background:rgba(46,55,106,0.8);border-color:var(--border-hi);transform:translateX(-2px);}
+.panel{background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-md);}
+.settings{background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 22px;margin-bottom:20px;display:grid;grid-template-columns:max-content 1fr;gap:14px 24px;align-items:center;box-shadow:var(--shadow-sm);transition:opacity 0.2s var(--ease);max-width:520px;width:100%;}
+.settings.locked{opacity:0.45;pointer-events:none;}
+.settings label{font-size:13px;color:var(--text-dim);font-weight:500;}
+.settings .val{font-weight:700;color:var(--text);margin-left:6px;font-variant-numeric:tabular-nums;}
+input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:6px;background:var(--bg-2);border-radius:3px;outline:none;border:1px solid var(--border);}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--surface);box-shadow:0 2px 6px rgba(0,0,0,0.4);}
+input[type="range"]:disabled{opacity:0.4;}
+input[type="checkbox"]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;}
+.settings-row{display:flex;align-items:center;gap:10px;}
+button{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;border:none;padding:11px 20px;border-radius:var(--r-sm);font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;transition:all 0.15s var(--ease);box-shadow:0 2px 8px rgba(106,201,255,0.25);}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 14px rgba(106,201,255,0.4);}
+button:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+button.big{padding:13px 32px;font-size:15px;}
+button.ghost{background:rgba(255,255,255,0.04);color:var(--text);border:1px solid var(--border-hi);box-shadow:none;}
+button.ghost:hover:not(:disabled){background:rgba(255,255,255,0.08);box-shadow:none;}
+.pill-group{display:inline-flex;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px;gap:2px;}
+.pill{background:transparent;color:var(--text-dim);border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:none;transition:all 0.15s var(--ease);}
+button.pill:hover:not(:disabled){color:var(--text);background:rgba(255,255,255,0.04);transform:none;box-shadow:none;}
+button.pill.active{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;box-shadow:0 2px 8px rgba(106,201,255,0.3);}
+.timer-bar{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:520px;margin-bottom:12px;padding:12px 18px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-md);}
+.timer{font-family:var(--font-mono);font-size:20px;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums;}
+.meta,.guess-counter,.attempts{font-size:13px;color:var(--text-dim);font-weight:500;}
+.status{margin-top:18px;text-align:center;min-height:24px;font-size:15px;color:var(--text);font-weight:500;}
+.status .new-best{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:10px;background:linear-gradient(135deg,#ffd77a,#ff9d4a);color:#1a0f00;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
+.hidden{display:none !important;}
+.board{background:linear-gradient(180deg,var(--surface) 0%,var(--bg-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-md);position:relative;}
+</style>
+<style>
+  /* Game-specific layout — settings width matches the other panels */
+  .settings { grid-template-columns: max-content 1fr; }
+  .settings input[type="range"] { width: 180px; }
+  .setting-row-hidden { display: none; }
+
+  /* Mode selector — uses shared .pill-group/.pill */
+  .mode-select { margin-bottom: 10px; }
+  .mode-blurb {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin: 0 0 20px;
+    max-width: 540px;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  /* Board */
+  .board {
+    min-width: 340px;
+    min-height: 60px;
+  }
+  .board.idle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    min-width: 340px;
+  }
+  .idle-msg { color: var(--text-faint); font-size: 14px; text-align: center; }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 10px;
+    border-radius: var(--r-sm);
+    margin-bottom: 4px;
+    background: rgba(255,255,255,0.02);
+    transition: background 0.15s var(--ease);
+  }
+  .row.active {
+    background: linear-gradient(90deg, rgba(106,201,255,0.12), rgba(154,123,255,0.08));
+    box-shadow: inset 0 0 0 1px rgba(106,201,255,0.25);
+  }
+
+  .guess { display: flex; gap: 6px; }
+  .slot {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,0.06), transparent 70%),
+      var(--bg-2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.12s var(--ease), box-shadow 0.12s var(--ease);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .slot:not(.fixed):hover {
+    transform: scale(1.08);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 0 0 12px rgba(106,201,255,0.3);
+  }
+  .slot.fixed { cursor: default; }
+
+  .peg {
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .peg.black {
+    background: radial-gradient(circle at 30% 30%, #2a2a2a, #000);
+    border-color: #000;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  .peg.white {
+    background: radial-gradient(circle at 30% 30%, #ffffff, #bababa);
+    border-color: #888;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  .feedback-grid { display: grid; gap: 3px; flex-shrink: 0; }
+  .feedback-num {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 50px;
+    text-align: center;
+    padding: 5px 10px;
+    border-radius: 12px;
+    background: rgba(106,201,255,0.12);
+    border: 1px solid rgba(106,201,255,0.2);
+    letter-spacing: 0.02em;
+  }
+
+  /* Color palette */
+  .palette {
+    margin-top: 18px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 540px;
+    min-height: 40px;
+  }
+  .color {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.15);
+  }
+  .color:hover { transform: scale(1.12) translateY(-2px); }
+  .color.selected {
+    border-color: var(--text);
+    box-shadow: 0 0 0 2px rgba(106,201,255,0.35), 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .color.used { opacity: 0.35; }
+  .color.used::after {
+    content: '✓';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    text-shadow: 0 0 3px #000;
+  }
+
+  .controls {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .secret-reveal {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  .secret-reveal .slot { cursor: default; }
+</style>
+</head>
+<body>
+  <script>
+window.GameFramework=(function(){
+function formatTime(t){const m=Math.floor(t/60).toString().padStart(2,'0'),s=(Math.floor(t)%60).toString().padStart(2,'0');return m+':'+s;}
+function createTimer(o){let st=0,el=0,iv=null;const d=o.display,lim=o.limitSeconds||0;function r(){if(!d)return;if(lim>0){const rem=Math.max(0,lim-el);d.textContent=formatTime(rem);d.style.color=rem<=10?'var(--danger)':'var(--accent)';}else{d.textContent=formatTime(el);d.style.color='var(--accent)';}}const api={start(){api.stop();st=Date.now();el=0;r();iv=setInterval(function(){el=Math.floor((Date.now()-st)/1000);r();if(o.onTick)o.onTick(el);if(lim>0&&el>=lim){api.stop();if(o.onExpire)o.onExpire();}},250);},stop(){if(iv){clearInterval(iv);iv=null;}},reset(){api.stop();el=0;r();},get elapsed(){return el;}};return api;}
+const K='gamesCreation.records.v1';
+function load(){try{const r=localStorage.getItem(K);return r?JSON.parse(r):{};}catch(e){return{};}}
+function save(r){try{localStorage.setItem(K,JSON.stringify(r));}catch(e){}}
+function recordWin(g,s,c){const a=load();const k=c?g+':'+c:g;const e=a[k]||{wins:0};const nb=e.bestSeconds==null||s<e.bestSeconds;a[k]={bestSeconds:nb?s:e.bestSeconds,wins:(e.wins||0)+1,lastPlayed:Date.now()};save(a);return{isNewBest:nb,bestSeconds:a[k].bestSeconds};}
+function getRecord(g){const a=load();const p=g+':';let b=null,w=0,lp=0;for(const k of Object.keys(a)){if(k!==g&&!k.startsWith(p))continue;const r=a[k];w+=r.wins||0;if(r.lastPlayed>lp)lp=r.lastPlayed;if(r.bestSeconds!=null&&(b==null||r.bestSeconds<b))b=r.bestSeconds;}if(w===0&&b==null)return null;return{bestSeconds:b,wins:w,lastPlayed:lp};}
+function injectBackLink(h){const a=document.createElement('a');a.className='back-link';a.href=h||'../index.html';a.textContent='\u2190 Menu';document.body.appendChild(a);}
+return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,getRecord:getRecord,injectBackLink:injectBackLink,loadRecords:load};
+})();
+GameFramework.injectBackLink();
+</script>
+  <h1>Mastermind</h1>
+  <div class="sub">Configure your game, then hit Start Game</div>
+
+  <div class="mode-select pill-group">
+    <button class="mode-btn pill active" data-mode="classic">Classic</button>
+    <button class="mode-btn pill" data-mode="unique">Unique Colors</button>
+  </div>
+  <div class="mode-blurb" id="modeBlurb">
+    Colors may repeat. Feedback = black pegs (right color, right spot) and white pegs (right color, wrong spot).
+  </div>
+
+  <div class="settings" id="settings">
+    <label id="colorsLabel">Colors: <span class="val" id="colorsVal">5</span></label>
+    <input type="range" id="colorsInput" min="3" max="10" value="5">
+
+    <label id="holesLabel">Peg holes: <span class="val" id="holesVal">5</span></label>
+    <input type="range" id="holesInput" min="3" max="8" value="5">
+
+    <label>Guesses: <span class="val" id="guessesVal">10</span></label>
+    <input type="range" id="guessesInput" min="4" max="15" value="10">
+
+    <label>Timer limit:
+      <span class="val" id="timerVal">off</span>
+    </label>
+    <div class="settings-row">
+      <input type="checkbox" id="timerEnabled">
+      <input type="range" id="timerInput" min="30" max="600" step="30" value="180" disabled>
+    </div>
+  </div>
+
+  <div class="timer-bar">
+    <div class="guess-counter" id="guessCounter">Not started</div>
+    <div class="timer" id="timerDisplay">00:00</div>
+  </div>
+
+  <div class="board idle" id="board">
+    <div class="idle-msg">Press <b>Start Game</b> to begin</div>
+  </div>
+
+  <div class="palette" id="palette"></div>
+
+  <div class="controls">
+    <button id="startBtn" class="big">Start Game</button>
+    <button id="submitBtn" class="hidden" disabled>Submit Guess</button>
+    <button id="clearBtn" class="ghost hidden">Clear Row</button>
+    <button id="resetBtn" class="ghost hidden">Reset</button>
+  </div>
+
+  <div class="status" id="status"></div>
+
+<script>
+  const ALL_COLORS = [
+    '#e74c3c', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6',
+    '#ecf0f1', '#e67e22', '#1abc9c', '#e84393', '#34495e'
+  ];
+
+  const MODES = {
+    classic: {
+      name: 'Classic',
+      blurb: 'Colors may repeat. Feedback = black pegs (right color, right spot) and white pegs (right color, wrong spot).',
+      uniqueColors: false,
+      feedbackType: 'pegs', // black/white pegs
+    },
+    unique: {
+      name: 'Unique Colors',
+      blurb: 'Arrange all the colors in the right order. Each color used exactly once. Feedback = how many are in the correct position (you are NOT told which).',
+      uniqueColors: true,
+      feedbackType: 'count', // single number = positions matched
+    },
+  };
+
+  const config = {
+    mode: 'classic',
+    numColors: 5,
+    codeLen: 5,
+    maxGuesses: 10,
+    timerLimit: 0,
+  };
+
+  // game state
+  let secret = [];
+  let guesses = [];
+  let currentRow = 0;
+  let selectedColor = 0;
+  let gameState = 'idle'; // 'idle' | 'playing' | 'over'
+  let startTime = 0;
+  let elapsed = 0;
+  let timerInterval = null;
+
+  const boardEl = document.getElementById('board');
+  const paletteEl = document.getElementById('palette');
+  const startBtn = document.getElementById('startBtn');
+  const submitBtn = document.getElementById('submitBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const statusEl = document.getElementById('status');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const guessCounter = document.getElementById('guessCounter');
+  const settingsEl = document.getElementById('settings');
+  const modeBlurb = document.getElementById('modeBlurb');
+
+  const colorsInput = document.getElementById('colorsInput');
+  const holesInput = document.getElementById('holesInput');
+  const guessesInput = document.getElementById('guessesInput');
+  const timerInput = document.getElementById('timerInput');
+  const timerEnabled = document.getElementById('timerEnabled');
+  const holesLabel = document.getElementById('holesLabel');
+  const colorsLabel = document.getElementById('colorsLabel');
+
+  const colorsVal = document.getElementById('colorsVal');
+  const holesVal = document.getElementById('holesVal');
+  const guessesVal = document.getElementById('guessesVal');
+  const timerVal = document.getElementById('timerVal');
+
+  // --- mode switching ---
+  const modeButtons = document.querySelectorAll('.mode-btn');
+  let currentMode = 'classic';
+
+  modeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (gameState === 'playing') return; // can't change mid-game
+      currentMode = btn.dataset.mode;
+      modeButtons.forEach(b => b.classList.toggle('active', b === btn));
+      modeBlurb.textContent = MODES[currentMode].blurb;
+      applyModeToSettings();
+      updateSettingsDisplay();
+    });
+  });
+
+  function applyModeToSettings() {
+    if (MODES[currentMode].uniqueColors) {
+      // one slider controls both: colors = holes. Hide the holes row.
+      holesLabel.classList.add('setting-row-hidden');
+      holesInput.classList.add('setting-row-hidden');
+      colorsLabel.innerHTML = 'Colors / holes: <span class="val" id="colorsVal">' + colorsInput.value + '</span>';
+      // clamp colors slider range so it stays in a reasonable band for this mode
+      colorsInput.min = '3';
+      colorsInput.max = '8';
+      if (parseInt(colorsInput.value, 10) > 8) colorsInput.value = '8';
+    } else {
+      holesLabel.classList.remove('setting-row-hidden');
+      holesInput.classList.remove('setting-row-hidden');
+      colorsLabel.innerHTML = 'Colors: <span class="val" id="colorsVal">' + colorsInput.value + '</span>';
+      colorsInput.min = '3';
+      colorsInput.max = '10';
+    }
+  }
+
+  function updateSettingsDisplay() {
+    // colorsVal is inside colorsLabel and gets re-created by applyModeToSettings, so look it up fresh
+    document.getElementById('colorsVal').textContent = colorsInput.value;
+    holesVal.textContent = holesInput.value;
+    guessesVal.textContent = guessesInput.value;
+    if (timerEnabled.checked) {
+      timerVal.textContent = formatTime(parseInt(timerInput.value, 10));
+    } else {
+      timerVal.textContent = 'off';
+    }
+  }
+
+  [colorsInput, holesInput, guessesInput, timerInput].forEach(el =>
+    el.addEventListener('input', updateSettingsDisplay));
+  timerEnabled.addEventListener('change', () => {
+    timerInput.disabled = !timerEnabled.checked;
+    updateSettingsDisplay();
+  });
+
+  // --- timer ---
+  function formatTime(totalSeconds) {
+    const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const s = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function startTimer() {
+    stopTimer();
+    startTime = Date.now();
+    elapsed = 0;
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      elapsed = Math.floor((Date.now() - startTime) / 1000);
+      updateTimerDisplay();
+      if (config.timerLimit > 0 && elapsed >= config.timerLimit) {
+        timeUp();
+      }
+    }, 250);
+  }
+
+  function stopTimer() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  }
+
+  function updateTimerDisplay() {
+    if (config.timerLimit > 0) {
+      const remaining = Math.max(0, config.timerLimit - elapsed);
+      timerDisplay.textContent = formatTime(remaining);
+      timerDisplay.style.color = remaining <= 10 ? '#e74c3c' : 'var(--accent)';
+    } else {
+      timerDisplay.textContent = formatTime(elapsed);
+      timerDisplay.style.color = 'var(--accent)';
+    }
+  }
+
+  function timeUp() {
+    if (gameState !== 'playing') return;
+    gameState = 'over';
+    stopTimer();
+    statusEl.textContent = "Time's up! The code was:";
+    render();
+    revealSecret();
+    showPostGameControls();
+  }
+
+  // --- secret generation ---
+  function generateSecret() {
+    if (MODES[config.mode].uniqueColors) {
+      // shuffle indices 0..numColors-1, take first codeLen
+      const pool = Array.from({ length: config.numColors }, (_, i) => i);
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      return pool.slice(0, config.codeLen);
+    } else {
+      return Array.from({ length: config.codeLen },
+        () => Math.floor(Math.random() * config.numColors));
+    }
+  }
+
+  // --- game lifecycle ---
+  function startGame() {
+    config.mode = currentMode;
+    config.numColors = parseInt(colorsInput.value, 10);
+    // in unique mode, holes = colors (one slider controls both)
+    config.codeLen = MODES[currentMode].uniqueColors
+      ? config.numColors
+      : parseInt(holesInput.value, 10);
+    config.maxGuesses = parseInt(guessesInput.value, 10);
+    config.timerLimit = timerEnabled.checked ? parseInt(timerInput.value, 10) : 0;
+
+    secret = generateSecret();
+    guesses = Array.from({ length: config.maxGuesses }, () => Array(config.codeLen).fill(null));
+    currentRow = 0;
+    selectedColor = 0;
+    gameState = 'playing';
+    statusEl.textContent = '';
+
+    settingsEl.classList.add('locked');
+    modeButtons.forEach(b => b.disabled = true);
+    startBtn.classList.add('hidden');
+    submitBtn.classList.remove('hidden');
+    clearBtn.classList.remove('hidden');
+    resetBtn.classList.remove('hidden');
+    resetBtn.textContent = 'Reset';
+
+    boardEl.classList.remove('idle');
+    startTimer();
+    render();
+  }
+
+  function resetToIdle() {
+    stopTimer();
+    gameState = 'idle';
+    secret = [];
+    guesses = [];
+    currentRow = 0;
+    elapsed = 0;
+    statusEl.textContent = '';
+
+    settingsEl.classList.remove('locked');
+    modeButtons.forEach(b => b.disabled = false);
+    startBtn.classList.remove('hidden');
+    startBtn.textContent = 'Start Game';
+    submitBtn.classList.add('hidden');
+    clearBtn.classList.add('hidden');
+    resetBtn.classList.add('hidden');
+
+    boardEl.classList.add('idle');
+    boardEl.innerHTML = '<div class="idle-msg">Press <b>Start Game</b> to begin</div>';
+    paletteEl.innerHTML = '';
+    guessCounter.textContent = 'Not started';
+    timerDisplay.textContent = '00:00';
+    timerDisplay.style.color = 'var(--accent)';
+    updateSettingsDisplay();
+  }
+
+  function showPostGameControls() {
+    submitBtn.classList.add('hidden');
+    clearBtn.classList.add('hidden');
+    resetBtn.classList.remove('hidden');
+    resetBtn.textContent = 'Change Settings';
+    startBtn.classList.remove('hidden');
+    startBtn.textContent = 'Play Again';
+  }
+
+  // --- slot interaction (mode-aware) ---
+  function placeColor(row, col, colorIdx) {
+    if (MODES[config.mode].uniqueColors) {
+      // if this color is already in another slot of this row, clear the other slot
+      for (let c = 0; c < config.codeLen; c++) {
+        if (c !== col && guesses[row][c] === colorIdx) {
+          guesses[row][c] = null;
+        }
+      }
+    }
+    guesses[row][col] = colorIdx;
+  }
+
+  function render() {
+    if (gameState !== 'playing' && gameState !== 'over') return;
+
+    if (gameState === 'playing') {
+      guessCounter.textContent = `Guess ${currentRow + 1} of ${config.maxGuesses} — ${MODES[config.mode].name}`;
+    } else {
+      guessCounter.textContent = `Game over`;
+    }
+
+    boardEl.innerHTML = '';
+    for (let r = config.maxGuesses - 1; r >= 0; r--) {
+      const row = document.createElement('div');
+      row.className = 'row' + (r === currentRow && gameState === 'playing' ? ' active' : '');
+
+      const guess = document.createElement('div');
+      guess.className = 'guess';
+      for (let c = 0; c < config.codeLen; c++) {
+        const slot = document.createElement('div');
+        slot.className = 'slot';
+        const val = guesses[r][c];
+        if (val !== null) slot.style.background = ALL_COLORS[val];
+        if (r === currentRow && gameState === 'playing') {
+          slot.addEventListener('click', () => {
+            placeColor(r, c, selectedColor);
+            render();
+          });
+        } else {
+          slot.classList.add('fixed');
+        }
+        guess.appendChild(slot);
+      }
+
+      // feedback
+      const feedbackEl = document.createElement('div');
+      if (r < currentRow) {
+        const fb = computeFeedback(guesses[r], secret);
+        if (MODES[config.mode].feedbackType === 'count') {
+          feedbackEl.className = 'feedback-num';
+          feedbackEl.textContent = `${fb.matches} / ${config.codeLen}`;
+        } else {
+          feedbackEl.className = 'feedback-grid';
+          const cols = Math.ceil(Math.sqrt(config.codeLen));
+          feedbackEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+          const pegs = [];
+          for (let i = 0; i < fb.black; i++) pegs.push('black');
+          for (let i = 0; i < fb.white; i++) pegs.push('white');
+          while (pegs.length < config.codeLen) pegs.push('empty');
+          for (const p of pegs) {
+            const peg = document.createElement('div');
+            peg.className = 'peg' + (p !== 'empty' ? ' ' + p : '');
+            feedbackEl.appendChild(peg);
+          }
+        }
+      } else {
+        // empty placeholder
+        if (MODES[config.mode].feedbackType === 'count') {
+          feedbackEl.className = 'feedback-num';
+          feedbackEl.style.visibility = 'hidden';
+          feedbackEl.textContent = '0 / 0';
+        } else {
+          feedbackEl.className = 'feedback-grid';
+          const cols = Math.ceil(Math.sqrt(config.codeLen));
+          feedbackEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+          for (let i = 0; i < config.codeLen; i++) {
+            const peg = document.createElement('div');
+            peg.className = 'peg';
+            feedbackEl.appendChild(peg);
+          }
+        }
+      }
+
+      row.appendChild(guess);
+      row.appendChild(feedbackEl);
+      boardEl.appendChild(row);
+    }
+
+    // palette — in unique mode, mark used colors
+    paletteEl.innerHTML = '';
+    const usedInCurrentRow = new Set();
+    if (MODES[config.mode].uniqueColors && gameState === 'playing') {
+      guesses[currentRow].forEach(v => { if (v !== null) usedInCurrentRow.add(v); });
+    }
+    for (let i = 0; i < config.numColors; i++) {
+      const d = document.createElement('div');
+      d.className = 'color' + (i === selectedColor ? ' selected' : '');
+      if (usedInCurrentRow.has(i)) d.classList.add('used');
+      d.style.background = ALL_COLORS[i];
+      d.addEventListener('click', () => { selectedColor = i; render(); });
+      paletteEl.appendChild(d);
+    }
+
+    // submit enabled only when row is full (and, in unique mode, all distinct — guaranteed by placeColor)
+    const rowFilled = gameState === 'playing' && guesses[currentRow].every(v => v !== null);
+    submitBtn.disabled = !rowFilled;
+  }
+
+  // --- feedback computation ---
+  function computeFeedback(guess, code) {
+    if (MODES[config.mode].feedbackType === 'count') {
+      // unique-colors mode: count positions matched (but not which)
+      let matches = 0;
+      for (let i = 0; i < code.length; i++) if (guess[i] === code[i]) matches++;
+      return { matches };
+    }
+    // classic: black/white pegs
+    let black = 0, white = 0;
+    const codeCount = Array(config.numColors).fill(0);
+    const guessCount = Array(config.numColors).fill(0);
+    for (let i = 0; i < config.codeLen; i++) {
+      if (guess[i] === code[i]) black++;
+      else { codeCount[code[i]]++; guessCount[guess[i]]++; }
+    }
+    for (let i = 0; i < config.numColors; i++) white += Math.min(codeCount[i], guessCount[i]);
+    return { black, white };
+  }
+
+  function isWinningGuess(guess, code) {
+    if (MODES[config.mode].feedbackType === 'count') {
+      // win = exact same set in same positions (since unique, matches==codeLen means right colors, but positions can differ!)
+      // for unique-colors mode, win means guess[i] === code[i] for all i
+      for (let i = 0; i < code.length; i++) if (guess[i] !== code[i]) return false;
+      return true;
+    }
+    for (let i = 0; i < code.length; i++) if (guess[i] !== code[i]) return false;
+    return true;
+  }
+
+  function revealSecret() {
+    const reveal = document.createElement('div');
+    reveal.className = 'secret-reveal';
+    for (const c of secret) {
+      const s = document.createElement('div');
+      s.className = 'slot fixed';
+      s.style.background = ALL_COLORS[c];
+      reveal.appendChild(s);
+    }
+    statusEl.appendChild(reveal);
+  }
+
+  // --- events ---
+  startBtn.addEventListener('click', startGame);
+
+  submitBtn.addEventListener('click', () => {
+    if (gameState !== 'playing') return;
+    const won = isWinningGuess(guesses[currentRow], secret);
+    currentRow++;
+    if (won) {
+      gameState = 'over';
+      stopTimer();
+      // record best time for this mode + config
+      const configKey = `${config.mode}-c${config.numColors}-h${config.codeLen}-g${config.maxGuesses}`;
+      const result = window.GameFramework
+        ? window.GameFramework.recordWin('mastermind', elapsed, configKey)
+        : { isNewBest: false };
+      const newBestTag = result.isNewBest ? ' — new best!' : '';
+      statusEl.textContent = `You cracked it in ${currentRow} guess${currentRow === 1 ? '' : 'es'} (${formatTime(elapsed)})${newBestTag}`;
+      render();
+      showPostGameControls();
+      return;
+    } else if (currentRow >= config.maxGuesses) {
+      gameState = 'over';
+      stopTimer();
+      statusEl.textContent = 'Out of guesses. The code was:';
+      render();
+      revealSecret();
+      showPostGameControls();
+      return;
+    }
+    render();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    if (gameState !== 'playing') return;
+    guesses[currentRow] = Array(config.codeLen).fill(null);
+    render();
+  });
+
+  resetBtn.addEventListener('click', resetToIdle);
+
+  // init
+  applyModeToSettings();
+  updateSettingsDisplay();
+</script>
+</body>
+</html>

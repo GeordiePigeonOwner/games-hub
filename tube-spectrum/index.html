@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tube Spectrum</title>
+<style>
+:root{--bg-0:#0b0f1e;--bg-1:#131831;--bg-2:#1a2040;--surface:#1d2442;--surface-2:#252c52;--surface-hi:#2e376a;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.14);--text:#eef1ff;--text-dim:rgba(238,241,255,0.62);--text-faint:rgba(238,241,255,0.38);--accent:#6ac9ff;--accent-2:#9a7bff;--accent-grad:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);--success:#3ed598;--gold:#ffd77a;--danger:#ff6b6b;--warn:#ffb86c;--r-sm:8px;--r-md:12px;--r-lg:16px;--shadow-sm:0 2px 8px rgba(0,0,0,0.25);--shadow-md:0 8px 24px rgba(0,0,0,0.35);--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--font-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;--ease:cubic-bezier(0.4,0,0.2,1);}
+*{box-sizing:border-box;}html,body{height:100%;}
+body{margin:0;font-family:var(--font-sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px;background:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(154,123,255,0.14),transparent 60%),radial-gradient(ellipse 60% 60% at 80% 100%,rgba(106,201,255,0.1),transparent 60%),linear-gradient(180deg,var(--bg-1) 0%,var(--bg-0) 100%);background-attachment:fixed;}
+h1{margin:0 0 8px;font-size:32px;font-weight:700;letter-spacing:-0.02em;color:var(--text);}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){h1{background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}}
+.sub{color:var(--text-dim);margin:0 0 24px;font-size:15px;text-align:center;max-width:560px;}
+.back-link{position:fixed;top:20px;left:20px;color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:8px 14px;border-radius:var(--r-sm);background:rgba(29,36,66,0.7);border:1px solid var(--border);transition:all 0.2s var(--ease);z-index:10;}
+.back-link:hover{color:var(--text);background:rgba(46,55,106,0.8);border-color:var(--border-hi);transform:translateX(-2px);}
+.settings{background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 22px;margin-bottom:20px;display:grid;grid-template-columns:max-content 1fr;gap:14px 24px;align-items:center;box-shadow:var(--shadow-sm);transition:opacity 0.2s var(--ease);max-width:520px;width:100%;}
+.settings.locked{opacity:0.45;pointer-events:none;}
+.settings label{font-size:13px;color:var(--text-dim);font-weight:500;}
+.settings .val{font-weight:700;color:var(--text);margin-left:6px;font-variant-numeric:tabular-nums;}
+.settings input[type="range"]{width:180px;}
+input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:6px;background:var(--bg-2);border-radius:3px;outline:none;border:1px solid var(--border);}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--surface);box-shadow:0 2px 6px rgba(0,0,0,0.4);}
+button{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;border:none;padding:11px 20px;border-radius:var(--r-sm);font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;transition:all 0.15s var(--ease);box-shadow:0 2px 8px rgba(106,201,255,0.25);}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 14px rgba(106,201,255,0.4);}
+button:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+button.big{padding:13px 32px;font-size:15px;}
+button.ghost{background:rgba(255,255,255,0.04);color:var(--text);border:1px solid var(--border-hi);box-shadow:none;}
+button.ghost:hover:not(:disabled){background:rgba(255,255,255,0.08);box-shadow:none;}
+.pill-group{display:inline-flex;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px;gap:2px;}
+.pill{background:transparent;color:var(--text-dim);border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:none;}
+button.pill:hover:not(:disabled){color:var(--text);background:rgba(255,255,255,0.04);transform:none;box-shadow:none;}
+button.pill.active{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;}
+.timer-bar{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:520px;margin-bottom:12px;padding:12px 18px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-md);}
+.timer{font-family:var(--font-mono);font-size:20px;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums;}
+.meta{font-size:13px;color:var(--text-dim);font-weight:500;}
+.status{margin-top:18px;text-align:center;min-height:24px;font-size:15px;color:var(--text);font-weight:500;}
+.status .new-best{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:10px;background:linear-gradient(135deg,#ffd77a,#ff9d4a);color:#1a0f00;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
+.hidden{display:none !important;}
+.board{background:linear-gradient(180deg,var(--surface) 0%,var(--bg-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-md);min-height:220px;display:flex;align-items:center;justify-content:center;}
+.board.idle{padding:48px 24px;}
+.idle-msg{color:var(--text-faint);font-size:14px;text-align:center;}
+
+.tube-row{display:flex;gap:14px;padding:12px;}
+.tube-slot{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:10px 6px;border-radius:var(--r-md);cursor:pointer;
+  border:2px solid transparent;transition:all 0.15s var(--ease);
+}
+.tube-slot:hover{background:rgba(255,255,255,0.04);transform:translateY(-2px);}
+.tube-slot.selected{border-color:var(--accent);background:rgba(106,201,255,0.14);box-shadow:0 0 20px rgba(106,201,255,0.25);}
+.tube-slot.correct{border-color:var(--success);background:rgba(62,213,152,0.12);box-shadow:0 0 16px rgba(62,213,152,0.2);}
+.tube-slot.fixed{cursor:default;}
+
+.tube{
+  width:46px;height:140px;
+  border-radius:0 0 18px 18px;
+  position:relative;
+  box-shadow:inset 2px 0 4px rgba(255,255,255,0.3),inset -2px 0 4px rgba(0,0,0,0.3),0 6px 12px rgba(0,0,0,0.4);
+}
+.tube::before{
+  content:'';position:absolute;top:-4px;left:-2px;right:-2px;height:8px;
+  background:linear-gradient(180deg,#c9d0e0,#8a91a8);
+  border-radius:3px;box-shadow:0 2px 4px rgba(0,0,0,0.5);
+}
+.tube::after{
+  content:'';position:absolute;top:0;left:8px;width:5px;height:40%;
+  background:linear-gradient(180deg,rgba(255,255,255,0.4),transparent);
+  border-radius:3px;
+}
+
+.tube-label{font-size:11px;color:var(--text-dim);font-weight:600;letter-spacing:0.3px;}
+.slot-idx{font-size:10px;color:var(--text-faint);font-family:var(--font-mono);}
+
+.controls{margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.feedback-msg{margin-top:14px;padding:12px 18px;border-radius:var(--r-sm);background:linear-gradient(135deg,rgba(106,201,255,0.1),rgba(154,123,255,0.08));border:1px solid rgba(106,201,255,0.2);color:var(--text);font-size:14px;text-align:center;max-width:560px;}
+</style>
+</head>
+<body>
+  <script>
+window.GameFramework=(function(){
+function formatTime(t){const m=Math.floor(t/60).toString().padStart(2,'0'),s=(Math.floor(t)%60).toString().padStart(2,'0');return m+':'+s;}
+function createTimer(o){let st=0,el=0,iv=null;const d=o.display,lim=o.limitSeconds||0;function r(){if(!d)return;if(lim>0){const rem=Math.max(0,lim-el);d.textContent=formatTime(rem);d.style.color=rem<=10?'var(--danger)':'var(--accent)';}else{d.textContent=formatTime(el);d.style.color='var(--accent)';}}const api={start(){api.stop();st=Date.now();el=0;r();iv=setInterval(function(){el=Math.floor((Date.now()-st)/1000);r();if(o.onTick)o.onTick(el);if(lim>0&&el>=lim){api.stop();if(o.onExpire)o.onExpire();}},250);},stop(){if(iv){clearInterval(iv);iv=null;}},reset(){api.stop();el=0;r();},get elapsed(){return el;}};return api;}
+const K='gamesCreation.records.v1';
+function load(){try{const r=localStorage.getItem(K);return r?JSON.parse(r):{};}catch(e){return{};}}
+function save(r){try{localStorage.setItem(K,JSON.stringify(r));}catch(e){}}
+function recordWin(g,s,c){const a=load();const k=c?g+':'+c:g;const e=a[k]||{wins:0};const nb=e.bestSeconds==null||s<e.bestSeconds;a[k]={bestSeconds:nb?s:e.bestSeconds,wins:(e.wins||0)+1,lastPlayed:Date.now()};save(a);return{isNewBest:nb};}
+function injectBackLink(h){const a=document.createElement('a');a.className='back-link';a.href=h||'../index.html';a.textContent='\u2190 Menu';document.body.appendChild(a);}
+return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,injectBackLink:injectBackLink};
+})();
+GameFramework.injectBackLink();
+</script>
+
+  <h1>Tube Spectrum</h1>
+  <div class="sub">Arrange the tubes in the correct colour spectrum order</div>
+
+  <div class="settings" id="settings">
+    <label>Number of tubes: <span class="val" id="countVal">5</span></label>
+    <input type="range" id="countInput" min="4" max="7" value="5">
+
+    <label>Max attempts: <span class="val" id="attemptsVal">4</span></label>
+    <input type="range" id="attemptsInput" min="1" max="8" value="4">
+
+    <label>Feedback:</label>
+    <div class="pill-group" id="hintToggle">
+      <button class="pill active" data-hint="specific">Highlight correct</button>
+      <button class="pill" data-hint="count">Count only</button>
+    </div>
+  </div>
+
+  <div class="timer-bar">
+    <div class="meta" id="attemptsCounter">Not started</div>
+    <div class="timer" id="timerDisplay">00:00</div>
+  </div>
+
+  <div class="board idle" id="board">
+    <div class="idle-msg">Press <b>Start Game</b> to begin</div>
+  </div>
+
+  <div class="controls">
+    <button id="startBtn" class="big">Start Game</button>
+    <button id="submitBtn" class="hidden">Submit Order</button>
+    <button id="shuffleBtn" class="ghost hidden">Shuffle</button>
+    <button id="resetBtn" class="ghost hidden">Reset</button>
+  </div>
+
+  <div class="feedback-msg hidden" id="feedback"></div>
+  <div class="status" id="status"></div>
+
+<script>
+  // Rainbow spectrum in order (closest to ROYGBIV but picking vivid distinguishable hues)
+  const SPECTRUM = [
+    { id: 'red',    name: 'Red',    color: '#e74c3c' },
+    { id: 'orange', name: 'Orange', color: '#f39c12' },
+    { id: 'yellow', name: 'Yellow', color: '#f1c40f' },
+    { id: 'green',  name: 'Green',  color: '#3ed598' },
+    { id: 'cyan',   name: 'Cyan',   color: '#1abc9c' },
+    { id: 'blue',   name: 'Blue',   color: '#3498db' },
+    { id: 'violet', name: 'Violet', color: '#9b59b6' },
+  ];
+
+  const config = { count: 5, maxAttempts: 4, hint: 'specific' };
+  let correct = [];
+  let current = [];
+  let selected = null;
+  let attempts = 0;
+  let lastFlags = null;
+  let gameState = 'idle';
+  let timer = null;
+
+  const $ = (id) => document.getElementById(id);
+  const boardEl = $('board'), settingsEl = $('settings');
+  const startBtn = $('startBtn'), submitBtn = $('submitBtn');
+  const shuffleBtn = $('shuffleBtn'), resetBtn = $('resetBtn');
+  const statusEl = $('status'), feedbackEl = $('feedback');
+  const attemptsCounter = $('attemptsCounter'), timerDisplay = $('timerDisplay');
+  const countInput = $('countInput'), countVal = $('countVal');
+  const attemptsInput = $('attemptsInput'), attemptsVal = $('attemptsVal');
+  const hintToggle = $('hintToggle');
+
+  let currentHint = 'specific';
+  hintToggle.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      if (gameState === 'playing') return;
+      currentHint = b.dataset.hint;
+      hintToggle.querySelectorAll('button').forEach(x =>
+        x.classList.toggle('active', x === b));
+    });
+  });
+
+  function updateSettings() {
+    countVal.textContent = countInput.value;
+    attemptsVal.textContent = attemptsInput.value;
+  }
+  [countInput, attemptsInput].forEach(el => el.addEventListener('input', updateSettings));
+
+  function shuffle(a) {
+    const x = a.slice();
+    for (let i = x.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [x[i], x[j]] = [x[j], x[i]];
+    }
+    return x;
+  }
+  function equalOrder(a, b) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (a[i].id !== b[i].id) return false;
+    return true;
+  }
+
+  function startGame() {
+    config.count = parseInt(countInput.value, 10);
+    config.maxAttempts = parseInt(attemptsInput.value, 10);
+    config.hint = currentHint;
+
+    correct = SPECTRUM.slice(0, config.count);
+    do { current = shuffle(correct); } while (equalOrder(current, correct));
+
+    selected = null;
+    attempts = 0;
+    lastFlags = null;
+    gameState = 'playing';
+    statusEl.textContent = '';
+    feedbackEl.classList.add('hidden');
+
+    settingsEl.classList.add('locked');
+    startBtn.classList.add('hidden');
+    submitBtn.classList.remove('hidden');
+    shuffleBtn.classList.remove('hidden');
+    resetBtn.classList.remove('hidden');
+    resetBtn.textContent = 'Reset';
+
+    timer = window.GameFramework.createTimer({ display: timerDisplay });
+    timer.start();
+    render();
+  }
+
+  function render() {
+    if (gameState === 'idle') return;
+    attemptsCounter.textContent = gameState === 'playing'
+      ? `Attempt ${attempts + 1} of ${config.maxAttempts}`
+      : 'Game over';
+
+    boardEl.innerHTML = '';
+    boardEl.classList.remove('idle');
+
+    const row = document.createElement('div');
+    row.className = 'tube-row';
+
+    for (let i = 0; i < current.length; i++) {
+      const slot = document.createElement('div');
+      slot.className = 'tube-slot';
+      if (i === selected) slot.classList.add('selected');
+      if (gameState === 'over') slot.classList.add('fixed');
+      if (lastFlags && config.hint === 'specific' && lastFlags[i]) slot.classList.add('correct');
+
+      const tube = document.createElement('div');
+      tube.className = 'tube';
+      tube.style.background = `linear-gradient(180deg, ${current[i].color}cc 0%, ${current[i].color} 100%)`;
+      slot.appendChild(tube);
+
+      const label = document.createElement('div');
+      label.className = 'tube-label';
+      label.textContent = current[i].name;
+      slot.appendChild(label);
+
+      const idx = document.createElement('div');
+      idx.className = 'slot-idx';
+      idx.textContent = '#' + (i + 1);
+      slot.appendChild(idx);
+
+      if (gameState === 'playing') {
+        slot.addEventListener('click', () => onSlotClick(i));
+      }
+      row.appendChild(slot);
+    }
+    boardEl.appendChild(row);
+  }
+
+  function onSlotClick(i) {
+    if (selected === null) { selected = i; }
+    else if (selected === i) { selected = null; }
+    else {
+      [current[selected], current[i]] = [current[i], current[selected]];
+      selected = null;
+      lastFlags = null;
+    }
+    render();
+  }
+
+  submitBtn.addEventListener('click', () => {
+    if (gameState !== 'playing') return;
+    const flags = current.map((c, i) => c.id === correct[i].id);
+    const n = flags.filter(Boolean).length;
+    attempts++;
+
+    if (n === correct.length) {
+      gameState = 'over'; timer.stop();
+      lastFlags = flags;
+      const configKey = `n${config.count}-${config.hint}`;
+      const res = window.GameFramework.recordWin('tube-spectrum', timer.elapsed, configKey);
+      const nb = res.isNewBest ? '<span class="new-best">NEW BEST</span>' : '';
+      statusEl.innerHTML = `Solved in ${attempts} attempt${attempts === 1 ? '' : 's'} · ${window.GameFramework.formatTime(timer.elapsed)} ${nb}`;
+      feedbackEl.classList.add('hidden');
+      postGame();
+      render();
+      return;
+    }
+
+    if (config.hint === 'specific') {
+      lastFlags = flags;
+      feedbackEl.textContent = `${n} of ${correct.length} in the right position.`;
+    } else {
+      lastFlags = null;
+      feedbackEl.textContent = `${n} of ${correct.length} in the right position.`;
+    }
+    feedbackEl.classList.remove('hidden');
+
+    if (attempts >= config.maxAttempts) {
+      gameState = 'over'; timer.stop();
+      statusEl.textContent = 'Out of attempts. Correct order: ' + correct.map(c => c.name).join(' → ');
+      current = correct.slice();
+      lastFlags = current.map(() => true);
+      postGame();
+    }
+    render();
+  });
+
+  shuffleBtn.addEventListener('click', () => {
+    if (gameState !== 'playing') return;
+    do { current = shuffle(current); } while (equalOrder(current, correct));
+    selected = null; lastFlags = null;
+    render();
+  });
+
+  function postGame() {
+    submitBtn.classList.add('hidden');
+    shuffleBtn.classList.add('hidden');
+    startBtn.classList.remove('hidden');
+    startBtn.textContent = 'Play Again';
+    resetBtn.textContent = 'Change Settings';
+  }
+
+  function resetIdle() {
+    if (timer) timer.reset();
+    gameState = 'idle'; correct = []; current = []; selected = null; attempts = 0; lastFlags = null;
+    settingsEl.classList.remove('locked');
+    startBtn.classList.remove('hidden'); startBtn.textContent = 'Start Game';
+    submitBtn.classList.add('hidden'); shuffleBtn.classList.add('hidden'); resetBtn.classList.add('hidden');
+    boardEl.classList.add('idle');
+    boardEl.innerHTML = '<div class="idle-msg">Press <b>Start Game</b> to begin</div>';
+    attemptsCounter.textContent = 'Not started';
+    timerDisplay.textContent = '00:00';
+    feedbackEl.classList.add('hidden');
+    statusEl.textContent = '';
+  }
+
+  startBtn.addEventListener('click', startGame);
+  resetBtn.addEventListener('click', resetIdle);
+  updateSettings();
+</script>
+</body>
+</html>

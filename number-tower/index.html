@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Number Tower</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{--bg-0:#0b0f1e;--bg-1:#131831;--bg-2:#1a2040;--surface:#1d2442;--surface-2:#252c52;--surface-hi:#2e376a;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.14);--text:#eef1ff;--text-dim:rgba(238,241,255,0.62);--text-faint:rgba(238,241,255,0.38);--accent:#6ac9ff;--accent-2:#9a7bff;--accent-grad:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);--success:#3ed598;--gold:#ffd77a;--danger:#ff6b6b;--warn:#ffb86c;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--shadow-sm:0 2px 8px rgba(0,0,0,0.25);--shadow-md:0 8px 24px rgba(0,0,0,0.35);--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--font-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;--ease:cubic-bezier(0.4,0,0.2,1);}
+*{box-sizing:border-box;}html,body{height:100%;}
+body{margin:0;font-family:var(--font-sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px;background:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(154,123,255,0.14),transparent 60%),radial-gradient(ellipse 60% 60% at 80% 100%,rgba(106,201,255,0.1),transparent 60%),linear-gradient(180deg,var(--bg-1) 0%,var(--bg-0) 100%);background-attachment:fixed;}
+h1{margin:0 0 8px;font-size:32px;font-weight:700;letter-spacing:-0.02em;color:var(--text);}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){h1{background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}}
+h2{margin:0 0 12px;font-size:22px;font-weight:600;}h3{margin:0 0 8px;font-size:18px;font-weight:600;}
+.sub{color:var(--text-dim);margin:0 0 24px;font-size:15px;text-align:center;max-width:560px;}
+.back-link{position:fixed;top:20px;left:20px;color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:8px 14px;border-radius:var(--r-sm);background:rgba(29,36,66,0.7);border:1px solid var(--border);transition:all 0.2s var(--ease);z-index:10;}
+.back-link:hover{color:var(--text);background:rgba(46,55,106,0.8);border-color:var(--border-hi);transform:translateX(-2px);}
+.panel{background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-md);}
+.settings{background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 22px;margin-bottom:20px;display:grid;grid-template-columns:max-content 1fr;gap:14px 24px;align-items:center;box-shadow:var(--shadow-sm);transition:opacity 0.2s var(--ease);max-width:520px;width:100%;}
+.settings.locked{opacity:0.45;pointer-events:none;}
+.settings label{font-size:13px;color:var(--text-dim);font-weight:500;}
+.settings .val{font-weight:700;color:var(--text);margin-left:6px;font-variant-numeric:tabular-nums;}
+input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:6px;background:var(--bg-2);border-radius:3px;outline:none;border:1px solid var(--border);}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--surface);box-shadow:0 2px 6px rgba(0,0,0,0.4);}
+input[type="range"]:disabled{opacity:0.4;}
+input[type="checkbox"]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;}
+.settings-row{display:flex;align-items:center;gap:10px;}
+button{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;border:none;padding:11px 20px;border-radius:var(--r-sm);font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;transition:all 0.15s var(--ease);box-shadow:0 2px 8px rgba(106,201,255,0.25);}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 14px rgba(106,201,255,0.4);}
+button:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+button.big{padding:13px 32px;font-size:15px;}
+button.ghost{background:rgba(255,255,255,0.04);color:var(--text);border:1px solid var(--border-hi);box-shadow:none;}
+button.ghost:hover:not(:disabled){background:rgba(255,255,255,0.08);box-shadow:none;}
+.pill-group{display:inline-flex;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px;gap:2px;}
+.pill{background:transparent;color:var(--text-dim);border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:none;transition:all 0.15s var(--ease);}
+button.pill:hover:not(:disabled){color:var(--text);background:rgba(255,255,255,0.04);transform:none;box-shadow:none;}
+button.pill.active{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;box-shadow:0 2px 8px rgba(106,201,255,0.3);}
+.timer-bar{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:520px;margin-bottom:12px;padding:12px 18px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-md);}
+.timer{font-family:var(--font-mono);font-size:20px;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums;}
+.meta,.guess-counter,.attempts{font-size:13px;color:var(--text-dim);font-weight:500;}
+.status{margin-top:18px;text-align:center;min-height:24px;font-size:15px;color:var(--text);font-weight:500;}
+.status .new-best{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:10px;background:linear-gradient(135deg,#ffd77a,#ff9d4a);color:#1a0f00;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
+.hidden{display:none !important;}
+.board{background:linear-gradient(180deg,var(--surface) 0%,var(--bg-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-md);position:relative;}
+</style>
+<style>
+  .settings input[type="range"] { width: 180px; }
+
+  .target-pill {
+    background: linear-gradient(135deg, rgba(197,140,255,0.15), rgba(154,123,255,0.1));
+    border: 1px solid rgba(197,140,255,0.35);
+    padding: 10px 22px;
+    border-radius: var(--r-md);
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .target-pill .label {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .target-pill .val {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 700;
+    color: #c58cff;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .tower {
+    display: grid;
+    grid-template-columns: auto repeat(4, 1fr);
+    gap: 8px;
+    padding: 22px;
+    min-width: 460px;
+  }
+
+  .col-header {
+    font-size: 10px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    text-align: center;
+    font-weight: 700;
+    padding: 6px 0;
+  }
+  .col-header.first { grid-column: 1 / span 1; text-align: right; padding-right: 10px; }
+
+  .rotate-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    gap: 4px;
+  }
+  .rotate-btn {
+    background: linear-gradient(180deg, var(--surface-hi), var(--surface-2));
+    color: var(--text);
+    border: 1px solid var(--border-hi);
+    width: 34px; height: 34px;
+    border-radius: var(--r-sm);
+    font-size: 16px;
+    padding: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .rotate-btn:hover:not(:disabled) {
+    border-color: rgba(197,140,255,0.6);
+    box-shadow: 0 4px 10px rgba(197,140,255,0.25);
+  }
+
+  .face {
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.08), transparent 50%),
+      linear-gradient(180deg, var(--surface-2), var(--bg-2));
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 14px 0;
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05);
+    transition: all 0.2s var(--ease);
+  }
+  .face.visible-shift {
+    animation: faceShift 0.3s ease-out;
+  }
+  @keyframes faceShift {
+    0%   { transform: rotateY(-90deg); opacity: 0; }
+    100% { transform: rotateY(0); opacity: 1; }
+  }
+
+  .sum-cell {
+    text-align: center;
+    padding: 10px 0 4px;
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    border-top: 1px dashed var(--border);
+    margin-top: 6px;
+    transition: color 0.2s var(--ease);
+  }
+  .sum-cell.correct { color: var(--success); text-shadow: 0 0 12px rgba(62,213,152,0.5); }
+  .sum-cell.wrong   { color: var(--danger); }
+
+  .board.idle { display: flex; align-items: center; justify-content: center; padding: 48px 24px; min-height: 220px; min-width: 340px; }
+  .idle-msg { color: var(--text-faint); font-size: 14px; text-align: center; }
+
+  .controls { margin-top: 18px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+  <script>
+window.GameFramework=(function(){
+function formatTime(t){const m=Math.floor(t/60).toString().padStart(2,'0'),s=(Math.floor(t)%60).toString().padStart(2,'0');return m+':'+s;}
+function createTimer(o){let st=0,el=0,iv=null;const d=o.display,lim=o.limitSeconds||0;function r(){if(!d)return;if(lim>0){const rem=Math.max(0,lim-el);d.textContent=formatTime(rem);d.style.color=rem<=10?'var(--danger)':'var(--accent)';}else{d.textContent=formatTime(el);d.style.color='var(--accent)';}}const api={start(){api.stop();st=Date.now();el=0;r();iv=setInterval(function(){el=Math.floor((Date.now()-st)/1000);r();if(o.onTick)o.onTick(el);if(lim>0&&el>=lim){api.stop();if(o.onExpire)o.onExpire();}},250);},stop(){if(iv){clearInterval(iv);iv=null;}},reset(){api.stop();el=0;r();},get elapsed(){return el;}};return api;}
+const K='gamesCreation.records.v1';
+function load(){try{const r=localStorage.getItem(K);return r?JSON.parse(r):{};}catch(e){return{};}}
+function save(r){try{localStorage.setItem(K,JSON.stringify(r));}catch(e){}}
+function recordWin(g,s,c){const a=load();const k=c?g+':'+c:g;const e=a[k]||{wins:0};const nb=e.bestSeconds==null||s<e.bestSeconds;a[k]={bestSeconds:nb?s:e.bestSeconds,wins:(e.wins||0)+1,lastPlayed:Date.now()};save(a);return{isNewBest:nb,bestSeconds:a[k].bestSeconds};}
+function getRecord(g){const a=load();const p=g+':';let b=null,w=0,lp=0;for(const k of Object.keys(a)){if(k!==g&&!k.startsWith(p))continue;const r=a[k];w+=r.wins||0;if(r.lastPlayed>lp)lp=r.lastPlayed;if(r.bestSeconds!=null&&(b==null||r.bestSeconds<b))b=r.bestSeconds;}if(w===0&&b==null)return null;return{bestSeconds:b,wins:w,lastPlayed:lp};}
+function injectBackLink(h){const a=document.createElement('a');a.className='back-link';a.href=h||'../index.html';a.textContent='\u2190 Menu';document.body.appendChild(a);}
+return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,getRecord:getRecord,injectBackLink:injectBackLink,loadRecords:load};
+})();
+GameFramework.injectBackLink();
+</script>
+  <h1>Number Tower</h1>
+  <div class="sub">Rotate each block so all four sides add up to the target</div>
+
+  <div class="settings" id="settings">
+    <label>Blocks: <span class="val" id="blocksVal">4</span></label>
+    <input type="range" id="blocksInput" min="3" max="6" value="4">
+  </div>
+
+  <div class="target-pill">
+    <span class="label">Target sum</span>
+    <span class="val" id="targetDisplay">20</span>
+  </div>
+
+  <div class="timer-bar">
+    <div class="meta" id="progressMeta">Not started</div>
+    <div class="timer" id="timerDisplay">00:00</div>
+  </div>
+
+  <div class="board idle" id="board">
+    <div class="idle-msg">Press <b>Start Game</b> to begin</div>
+  </div>
+
+  <div class="controls">
+    <button id="startBtn" class="big">Start Game</button>
+    <button id="resetBtn" class="ghost hidden">Reset</button>
+  </div>
+
+  <div class="status" id="status"></div>
+
+<script>
+  const config = {
+    blocks: 4,
+    target: 20,
+  };
+
+  // blocks: each is an array of 4 face values
+  // rotations: per block, integer 0..3
+  let blocks = [];
+  let rotations = [];
+  let moves = 0;
+  let gameState = 'idle';
+  let timer = null;
+
+  const boardEl = document.getElementById('board');
+  const settingsEl = document.getElementById('settings');
+  const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const statusEl = document.getElementById('status');
+  const progressMeta = document.getElementById('progressMeta');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const targetDisplay = document.getElementById('targetDisplay');
+
+  const blocksInput = document.getElementById('blocksInput');
+  const blocksVal = document.getElementById('blocksVal');
+
+  function computeTarget(n) { return n * 5; } // nice round: 15, 20, 25, 30
+
+  function updateSettingsDisplay() {
+    blocksVal.textContent = blocksInput.value;
+    const n = parseInt(blocksInput.value, 10);
+    targetDisplay.textContent = computeTarget(n);
+  }
+  blocksInput.addEventListener('input', updateSettingsDisplay);
+
+  // Generate n random values (each 1..9) summing to target, or null if impossible.
+  function randomValues(n, target) {
+    // bounds: min total n, max total 9n
+    if (target < n || target > 9 * n) return null;
+    for (let tries = 0; tries < 100; tries++) {
+      let sum = 0;
+      const vals = [];
+      let ok = true;
+      for (let i = 0; i < n - 1; i++) {
+        const remaining = n - i - 1;
+        const minV = Math.max(1, target - sum - 9 * remaining);
+        const maxV = Math.min(9, target - sum - 1 * remaining);
+        if (maxV < minV) { ok = false; break; }
+        const v = minV + Math.floor(Math.random() * (maxV - minV + 1));
+        vals.push(v);
+        sum += v;
+      }
+      if (ok) {
+        const last = target - sum;
+        if (last >= 1 && last <= 9) { vals.push(last); return vals; }
+      }
+    }
+    return null;
+  }
+
+  function generatePuzzle(n, target) {
+    // For each of 4 columns, pick n values summing to target.
+    // Then assemble blocks: block[b] = [col0[b], col1[b], col2[b], col3[b]]
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const cols = [];
+      let ok = true;
+      for (let c = 0; c < 4; c++) {
+        const v = randomValues(n, target);
+        if (!v) { ok = false; break; }
+        cols.push(v);
+      }
+      if (!ok) continue;
+      const newBlocks = [];
+      for (let b = 0; b < n; b++) {
+        newBlocks.push([cols[0][b], cols[1][b], cols[2][b], cols[3][b]]);
+      }
+      return newBlocks;
+    }
+    return null;
+  }
+
+  function startGame() {
+    config.blocks = parseInt(blocksInput.value, 10);
+    config.target = computeTarget(config.blocks);
+    targetDisplay.textContent = config.target;
+
+    blocks = generatePuzzle(config.blocks, config.target);
+    if (!blocks) { statusEl.textContent = 'Could not generate puzzle — try a different block count.'; return; }
+
+    // Random rotations, guaranteed not already solved (by ensuring at least one rotation is nonzero)
+    do {
+      rotations = Array.from({ length: config.blocks },
+        () => Math.floor(Math.random() * 4));
+    } while (rotations.every(r => r === 0) || isSolved());
+
+    moves = 0;
+    gameState = 'playing';
+    statusEl.textContent = '';
+
+    settingsEl.classList.add('locked');
+    startBtn.classList.add('hidden');
+    resetBtn.classList.remove('hidden');
+    resetBtn.textContent = 'Reset';
+
+    renderBoard();
+
+    timer = window.GameFramework.createTimer({ display: timerDisplay });
+    timer.start();
+  }
+
+  function faceAt(blockIdx, col) {
+    return blocks[blockIdx][(col + rotations[blockIdx]) % 4];
+  }
+
+  function columnSum(col) {
+    let s = 0;
+    for (let b = 0; b < config.blocks; b++) s += faceAt(b, col);
+    return s;
+  }
+
+  function isSolved() {
+    for (let c = 0; c < 4; c++) if (columnSum(c) !== config.target) return false;
+    return true;
+  }
+
+  function renderBoard() {
+    boardEl.innerHTML = '';
+    boardEl.classList.remove('idle');
+
+    const grid = document.createElement('div');
+    grid.className = 'tower';
+
+    // headers row
+    const labels = ['', 'Front', 'Right', 'Back', 'Left'];
+    for (let i = 0; i < 5; i++) {
+      const h = document.createElement('div');
+      h.className = 'col-header';
+      h.textContent = labels[i];
+      grid.appendChild(h);
+    }
+
+    for (let b = 0; b < config.blocks; b++) {
+      // rotate button cell
+      const rot = document.createElement('div');
+      rot.className = 'rotate-cell';
+      const btn = document.createElement('button');
+      btn.className = 'rotate-btn';
+      btn.textContent = '↻';
+      btn.title = 'Rotate block';
+      btn.addEventListener('click', () => rotate(b));
+      rot.appendChild(btn);
+      grid.appendChild(rot);
+
+      // 4 face cells
+      for (let c = 0; c < 4; c++) {
+        const face = document.createElement('div');
+        face.className = 'face';
+        face.dataset.block = b;
+        face.dataset.col = c;
+        face.textContent = faceAt(b, c);
+        grid.appendChild(face);
+      }
+    }
+
+    // sum row
+    const sumLabel = document.createElement('div');
+    sumLabel.className = 'col-header first';
+    sumLabel.textContent = 'Sum';
+    sumLabel.style.color = 'var(--text-dim)';
+    grid.appendChild(sumLabel);
+
+    for (let c = 0; c < 4; c++) {
+      const sum = document.createElement('div');
+      sum.className = 'sum-cell';
+      sum.dataset.col = c;
+      const s = columnSum(c);
+      sum.textContent = s;
+      sum.classList.add(s === config.target ? 'correct' : 'wrong');
+      grid.appendChild(sum);
+    }
+
+    boardEl.appendChild(grid);
+    updateProgress();
+  }
+
+  function rotate(b) {
+    if (gameState !== 'playing') return;
+    rotations[b] = (rotations[b] + 1) % 4;
+    moves++;
+    // update that block's faces + all sums
+    for (let c = 0; c < 4; c++) {
+      const faceEl = boardEl.querySelector(`.face[data-block="${b}"][data-col="${c}"]`);
+      if (faceEl) {
+        faceEl.textContent = faceAt(b, c);
+        faceEl.classList.remove('visible-shift');
+        // reflow + re-add for re-animation
+        void faceEl.offsetWidth;
+        faceEl.classList.add('visible-shift');
+      }
+    }
+    for (let c = 0; c < 4; c++) {
+      const sumEl = boardEl.querySelector(`.sum-cell[data-col="${c}"]`);
+      if (sumEl) {
+        const s = columnSum(c);
+        sumEl.textContent = s;
+        sumEl.classList.toggle('correct', s === config.target);
+        sumEl.classList.toggle('wrong',   s !== config.target);
+      }
+    }
+    updateProgress();
+    if (isSolved()) win();
+  }
+
+  function updateProgress() {
+    const correctSides = [0,1,2,3].filter(c => columnSum(c) === config.target).length;
+    progressMeta.textContent = `${correctSides} / 4 sides · ${moves} move${moves === 1 ? '' : 's'}`;
+  }
+
+  function win() {
+    gameState = 'over';
+    timer.stop();
+    const configKey = `b${config.blocks}`;
+    const result = window.GameFramework.recordWin('number-tower', timer.elapsed, configKey);
+    const newBest = result.isNewBest ? '<span class="new-best">NEW BEST</span>' : '';
+    statusEl.innerHTML = `Tower balanced in ${moves} move${moves === 1 ? '' : 's'} · ${window.GameFramework.formatTime(timer.elapsed)} ${newBest}`;
+    // disable rotate buttons
+    boardEl.querySelectorAll('.rotate-btn').forEach(b => b.disabled = true);
+    showPostGameControls();
+  }
+
+  function showPostGameControls() {
+    startBtn.classList.remove('hidden');
+    startBtn.textContent = 'Play Again';
+    resetBtn.textContent = 'Change Settings';
+  }
+
+  function resetToIdle() {
+    if (timer) timer.reset();
+    gameState = 'idle';
+    blocks = [];
+    rotations = [];
+    moves = 0;
+
+    settingsEl.classList.remove('locked');
+    startBtn.classList.remove('hidden');
+    startBtn.textContent = 'Start Game';
+    resetBtn.classList.add('hidden');
+
+    boardEl.innerHTML = '<div class="idle-msg">Press <b>Start Game</b> to begin</div>';
+    boardEl.classList.add('idle');
+    progressMeta.textContent = 'Not started';
+    timerDisplay.textContent = '00:00';
+    statusEl.textContent = '';
+  }
+
+  startBtn.addEventListener('click', startGame);
+  resetBtn.addEventListener('click', resetToIdle);
+
+  updateSettingsDisplay();
+</script>
+</body>
+</html>

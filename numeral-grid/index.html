@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Numeral Grid</title>
+<style>
+:root{--bg-0:#0b0f1e;--bg-1:#131831;--bg-2:#1a2040;--surface:#1d2442;--surface-2:#252c52;--surface-hi:#2e376a;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.14);--text:#eef1ff;--text-dim:rgba(238,241,255,0.62);--text-faint:rgba(238,241,255,0.38);--accent:#6ac9ff;--accent-2:#9a7bff;--accent-grad:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);--success:#3ed598;--gold:#ffd77a;--danger:#ff6b6b;--medieval:#d0454c;--r-sm:8px;--r-md:12px;--r-lg:16px;--shadow-sm:0 2px 8px rgba(0,0,0,0.25);--shadow-md:0 8px 24px rgba(0,0,0,0.35);--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--font-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;--ease:cubic-bezier(0.4,0,0.2,1);}
+*{box-sizing:border-box;}html,body{height:100%;}
+body{margin:0;font-family:var(--font-sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px;background:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(208,69,76,0.14),transparent 60%),radial-gradient(ellipse 60% 60% at 80% 100%,rgba(106,201,255,0.1),transparent 60%),linear-gradient(180deg,var(--bg-1) 0%,var(--bg-0) 100%);background-attachment:fixed;}
+h1{margin:0 0 8px;font-size:32px;font-weight:700;letter-spacing:-0.02em;color:var(--text);}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){h1{background:linear-gradient(135deg,#d0454c 0%,#ffb1b5 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}}
+.sub{color:var(--text-dim);margin:0 0 24px;font-size:15px;text-align:center;max-width:560px;}
+.back-link{position:fixed;top:20px;left:20px;color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:8px 14px;border-radius:var(--r-sm);background:rgba(29,36,66,0.7);border:1px solid var(--border);transition:all 0.2s var(--ease);z-index:10;}
+.back-link:hover{color:var(--text);background:rgba(46,55,106,0.8);border-color:var(--border-hi);transform:translateX(-2px);}
+.settings{background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 22px;margin-bottom:20px;display:grid;grid-template-columns:max-content 1fr;gap:14px 24px;align-items:center;box-shadow:var(--shadow-sm);transition:opacity 0.2s var(--ease);max-width:460px;width:100%;}
+.settings.locked{opacity:0.45;pointer-events:none;}
+.settings label{font-size:13px;color:var(--text-dim);font-weight:500;}
+.settings .val{font-weight:700;color:var(--text);margin-left:6px;}
+input[type="range"]{-webkit-appearance:none;appearance:none;width:180px;height:6px;background:var(--bg-2);border-radius:3px;outline:none;border:1px solid var(--border);}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--surface);box-shadow:0 2px 6px rgba(0,0,0,0.4);}
+button{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;border:none;padding:11px 20px;border-radius:var(--r-sm);font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;transition:all 0.15s var(--ease);box-shadow:0 2px 8px rgba(106,201,255,0.25);}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 14px rgba(106,201,255,0.4);}
+button:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+button.big{padding:13px 32px;font-size:15px;}
+button.ghost{background:rgba(255,255,255,0.04);color:var(--text);border:1px solid var(--border-hi);box-shadow:none;}
+button.ghost:hover:not(:disabled){background:rgba(255,255,255,0.08);box-shadow:none;}
+.timer-bar{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:460px;margin-bottom:12px;padding:12px 18px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-md);}
+.timer{font-family:var(--font-mono);font-size:20px;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums;}
+.meta{font-size:13px;color:var(--text-dim);font-weight:500;}
+.status{margin-top:18px;text-align:center;min-height:24px;font-size:15px;color:var(--text);font-weight:500;}
+.status .new-best{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:10px;background:linear-gradient(135deg,#ffd77a,#ff9d4a);color:#1a0f00;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
+.hidden{display:none !important;}
+
+.target-pill{
+  background:linear-gradient(135deg,rgba(208,69,76,0.18),rgba(208,69,76,0.08));
+  border:1px solid rgba(208,69,76,0.35);padding:10px 24px;border-radius:var(--r-md);
+  display:inline-flex;gap:14px;align-items:center;margin-bottom:14px;
+}
+.target-pill .label{font-size:11px;color:var(--text-dim);font-weight:700;letter-spacing:0.15em;text-transform:uppercase;}
+.target-pill .val{font-family:serif;font-size:30px;font-weight:700;color:#ffb1b5;line-height:1;}
+
+.board{background:linear-gradient(180deg,var(--surface) 0%,var(--bg-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;box-shadow:var(--shadow-md);position:relative;}
+.board.idle{padding:48px 24px;display:flex;align-items:center;justify-content:center;min-height:220px;min-width:340px;}
+.idle-msg{color:var(--text-faint);font-size:14px;text-align:center;}
+
+.grid-wrap{
+  display:grid;
+  grid-template-columns:repeat(3,80px);
+  grid-template-rows:repeat(3,80px);
+  gap:8px;
+  position:relative;
+}
+.cell{
+  background:linear-gradient(180deg,var(--surface-hi),var(--surface-2));
+  border:2px solid var(--border-hi);
+  border-radius:var(--r-sm);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Times New Roman',serif;
+  font-size:30px;font-weight:700;color:var(--text);
+  cursor:pointer;
+  transition:all 0.12s var(--ease);
+  user-select:none;
+  letter-spacing:0.05em;
+}
+.cell:hover:not(.fixed){border-color:var(--medieval);transform:translateY(-1px);box-shadow:0 4px 10px rgba(208,69,76,0.25);}
+.cell.selected{border-color:var(--medieval);background:linear-gradient(180deg,rgba(208,69,76,0.2),rgba(208,69,76,0.05));box-shadow:0 0 20px rgba(208,69,76,0.35);}
+.cell.fixed{cursor:default;}
+
+.sum-badge{
+  position:absolute;
+  width:34px;height:34px;
+  background:linear-gradient(135deg,var(--surface-2),var(--bg-2));
+  border:2px solid var(--border-hi);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:13px;font-weight:700;
+  color:var(--text-dim);
+  z-index:2;
+  transition:all 0.2s var(--ease);
+}
+.sum-badge.correct{
+  border-color:var(--success);color:var(--success);
+  background:linear-gradient(135deg,rgba(62,213,152,0.2),rgba(62,213,152,0.08));
+  box-shadow:0 0 16px rgba(62,213,152,0.4);
+}
+
+.controls{margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+  <script>
+window.GameFramework=(function(){
+function formatTime(t){const m=Math.floor(t/60).toString().padStart(2,'0'),s=(Math.floor(t)%60).toString().padStart(2,'0');return m+':'+s;}
+function createTimer(o){let st=0,el=0,iv=null;const d=o.display,lim=o.limitSeconds||0;function r(){if(!d)return;if(lim>0){const rem=Math.max(0,lim-el);d.textContent=formatTime(rem);d.style.color=rem<=10?'var(--danger)':'var(--accent)';}else{d.textContent=formatTime(el);d.style.color='var(--accent)';}}const api={start(){api.stop();st=Date.now();el=0;r();iv=setInterval(function(){el=Math.floor((Date.now()-st)/1000);r();if(o.onTick)o.onTick(el);if(lim>0&&el>=lim){api.stop();if(o.onExpire)o.onExpire();}},250);},stop(){if(iv){clearInterval(iv);iv=null;}},reset(){api.stop();el=0;r();},get elapsed(){return el;}};return api;}
+const K='gamesCreation.records.v1';
+function load(){try{const r=localStorage.getItem(K);return r?JSON.parse(r):{};}catch(e){return{};}}
+function save(r){try{localStorage.setItem(K,JSON.stringify(r));}catch(e){}}
+function recordWin(g,s,c){const a=load();const k=c?g+':'+c:g;const e=a[k]||{wins:0};const nb=e.bestSeconds==null||s<e.bestSeconds;a[k]={bestSeconds:nb?s:e.bestSeconds,wins:(e.wins||0)+1,lastPlayed:Date.now()};save(a);return{isNewBest:nb};}
+function injectBackLink(h){const a=document.createElement('a');a.className='back-link';a.href=h||'../index.html';a.textContent='\u2190 Menu';document.body.appendChild(a);}
+return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,injectBackLink:injectBackLink};
+})();
+GameFramework.injectBackLink();
+</script>
+
+  <h1>Numeral Grid</h1>
+  <div class="sub">Swap Roman numerals so every 2×2 block sums to the target</div>
+
+  <div class="settings" id="settings">
+    <label>Difficulty:</label>
+    <div class="pill-group" id="diffToggle">
+      <button class="pill active" data-diff="easy">Easy</button>
+      <button class="pill" data-diff="medium">Medium</button>
+      <button class="pill" data-diff="hard">Hard</button>
+    </div>
+  </div>
+
+  <div class="target-pill">
+    <span class="label">Each 2×2 sum</span>
+    <span class="val" id="targetDisplay">—</span>
+  </div>
+
+  <div class="timer-bar">
+    <div class="meta" id="progressMeta">Not started</div>
+    <div class="timer" id="timerDisplay">00:00</div>
+  </div>
+
+  <div class="board idle" id="board">
+    <div class="idle-msg">Press <b>Start Game</b> to begin</div>
+  </div>
+
+  <div class="controls">
+    <button id="startBtn" class="big">Start Game</button>
+    <button id="resetBtn" class="ghost hidden">Reset</button>
+  </div>
+
+  <div class="status" id="status"></div>
+
+<style>
+/* pill-group styles */
+.pill-group{display:inline-flex;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px;gap:2px;}
+.pill{background:transparent;color:var(--text-dim);border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:none;}
+button.pill:hover:not(:disabled){color:var(--text);background:rgba(255,255,255,0.04);transform:none;box-shadow:none;}
+button.pill.active{background:linear-gradient(135deg,#d0454c 0%,#ffb1b5 100%);color:#2a0308;}
+</style>
+
+<script>
+  const ROMAN = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV'];
+  const DIFF = {
+    easy:   { range: [1, 6],  target: null }, // target computed
+    medium: { range: [1, 9],  target: null },
+    hard:   { range: [1, 12], target: null },
+  };
+
+  const config = { difficulty: 'easy', target: 14 };
+  let grid = [];           // 9 numbers
+  let selected = null;
+  let gameState = 'idle';
+  let timer = null;
+
+  const $ = (id) => document.getElementById(id);
+  const boardEl = $('board'), settingsEl = $('settings');
+  const startBtn = $('startBtn'), resetBtn = $('resetBtn');
+  const statusEl = $('status'), progressMeta = $('progressMeta');
+  const timerDisplay = $('timerDisplay'), targetDisplay = $('targetDisplay');
+  const diffToggle = $('diffToggle');
+
+  let currentDiff = 'easy';
+  diffToggle.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      if (gameState === 'playing') return;
+      currentDiff = b.dataset.diff;
+      diffToggle.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+    });
+  });
+
+  function ri(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+  // Generate a solved 3x3 grid where each 2x2 sums to T
+  // Constraints (indices a..i, reading rows):
+  //   a b c
+  //   d e f
+  //   g h i
+  // 2x2 sums: a+b+d+e, b+c+e+f, d+e+g+h, e+f+h+i all = T
+  function generateSolved(range) {
+    const [lo, hi] = range;
+    for (let tries = 0; tries < 3000; tries++) {
+      const a = ri(lo, hi), b = ri(lo, hi), d = ri(lo, hi), e = ri(lo, hi);
+      const T = a + b + d + e;
+      // choose c, then f = T - b - c - e
+      const c = ri(lo, hi);
+      const f = T - b - c - e;
+      if (f < lo || f > hi) continue;
+      const g = ri(lo, hi);
+      const h = T - d - e - g;
+      if (h < lo || h > hi) continue;
+      const i = T - e - f - h;
+      if (i < lo || i > hi) continue;
+      const solved = [a, b, c, d, e, f, g, h, i];
+      return { solved, target: T };
+    }
+    return null;
+  }
+
+  function isSolved() {
+    const T = config.target;
+    return sum2x2(0,1,3,4) === T && sum2x2(1,2,4,5) === T
+        && sum2x2(3,4,6,7) === T && sum2x2(4,5,7,8) === T;
+  }
+  function sum2x2(a,b,c,d) { return grid[a] + grid[b] + grid[c] + grid[d]; }
+
+  function startGame() {
+    config.difficulty = currentDiff;
+    const range = DIFF[currentDiff].range;
+    const puz = generateSolved(range);
+    if (!puz) { statusEl.textContent = 'Could not generate a puzzle — try again.'; return; }
+    const { solved, target } = puz;
+    config.target = target;
+    targetDisplay.textContent = target;
+
+    // shuffle into a starting position that is NOT already solved
+    do {
+      grid = shuffle(solved);
+    } while (isSolved());
+
+    selected = null;
+    gameState = 'playing';
+    statusEl.textContent = '';
+    settingsEl.classList.add('locked');
+    startBtn.classList.add('hidden');
+    resetBtn.classList.remove('hidden');
+    resetBtn.textContent = 'Reset';
+
+    timer = window.GameFramework.createTimer({ display: timerDisplay });
+    timer.start();
+    render();
+  }
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function render() {
+    boardEl.innerHTML = '';
+    boardEl.classList.remove('idle');
+
+    const wrap = document.createElement('div');
+    wrap.className = 'grid-wrap';
+
+    for (let i = 0; i < 9; i++) {
+      const c = document.createElement('div');
+      c.className = 'cell';
+      if (i === selected) c.classList.add('selected');
+      if (gameState === 'over') c.classList.add('fixed');
+      c.textContent = ROMAN[grid[i]] || String(grid[i]);
+      if (gameState === 'playing') c.addEventListener('click', () => onCell(i));
+      wrap.appendChild(c);
+    }
+
+    // sum badges positioned over the 4 2x2 junctions
+    // cells are 80px, gap 8px. junction between (row,col) and next is at position (col+1)*cellSize + col*gap - 17
+    const cellSize = 80, gap = 8, badgeSize = 34;
+    const T = config.target;
+    const sums = [
+      { val: sum2x2(0,1,3,4), row: 0, col: 0 },
+      { val: sum2x2(1,2,4,5), row: 0, col: 1 },
+      { val: sum2x2(3,4,6,7), row: 1, col: 0 },
+      { val: sum2x2(4,5,7,8), row: 1, col: 1 },
+    ];
+    sums.forEach(s => {
+      const badge = document.createElement('div');
+      badge.className = 'sum-badge' + (s.val === T ? ' correct' : '');
+      badge.textContent = s.val;
+      const x = (s.col + 1) * cellSize + s.col * gap + gap/2 - badgeSize/2;
+      const y = (s.row + 1) * cellSize + s.row * gap + gap/2 - badgeSize/2;
+      badge.style.left = x + 'px';
+      badge.style.top  = y + 'px';
+      wrap.appendChild(badge);
+    });
+
+    boardEl.appendChild(wrap);
+
+    const correctCount = sums.filter(s => s.val === T).length;
+    progressMeta.textContent = gameState === 'playing' ? `${correctCount} / 4 blocks` : 'Game over';
+  }
+
+  function onCell(i) {
+    if (gameState !== 'playing') return;
+    if (selected === null) { selected = i; }
+    else if (selected === i) { selected = null; }
+    else {
+      [grid[selected], grid[i]] = [grid[i], grid[selected]];
+      selected = null;
+    }
+    render();
+    if (isSolved()) win();
+  }
+
+  function win() {
+    gameState = 'over'; timer.stop();
+    const configKey = config.difficulty;
+    const res = window.GameFramework.recordWin('numeral-grid', timer.elapsed, configKey);
+    const nb = res.isNewBest ? '<span class="new-best">NEW BEST</span>' : '';
+    statusEl.innerHTML = `Solved in ${window.GameFramework.formatTime(timer.elapsed)} ${nb}`;
+    startBtn.classList.remove('hidden');
+    startBtn.textContent = 'Play Again';
+    resetBtn.textContent = 'Change Settings';
+  }
+
+  function resetIdle() {
+    if (timer) timer.reset();
+    gameState = 'idle'; grid = []; selected = null;
+    settingsEl.classList.remove('locked');
+    startBtn.classList.remove('hidden'); startBtn.textContent = 'Start Game';
+    resetBtn.classList.add('hidden');
+    boardEl.classList.add('idle');
+    boardEl.innerHTML = '<div class="idle-msg">Press <b>Start Game</b> to begin</div>';
+    targetDisplay.textContent = '—';
+    progressMeta.textContent = 'Not started';
+    timerDisplay.textContent = '00:00';
+    statusEl.textContent = '';
+  }
+
+  startBtn.addEventListener('click', startGame);
+  resetBtn.addEventListener('click', resetIdle);
+</script>
+</body>
+</html>

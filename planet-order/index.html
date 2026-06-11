@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Planet Order</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{--bg-0:#0b0f1e;--bg-1:#131831;--bg-2:#1a2040;--surface:#1d2442;--surface-2:#252c52;--surface-hi:#2e376a;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.14);--text:#eef1ff;--text-dim:rgba(238,241,255,0.62);--text-faint:rgba(238,241,255,0.38);--accent:#6ac9ff;--accent-2:#9a7bff;--accent-grad:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);--success:#3ed598;--gold:#ffd77a;--danger:#ff6b6b;--warn:#ffb86c;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--shadow-sm:0 2px 8px rgba(0,0,0,0.25);--shadow-md:0 8px 24px rgba(0,0,0,0.35);--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--font-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;--ease:cubic-bezier(0.4,0,0.2,1);}
+*{box-sizing:border-box;}html,body{height:100%;}
+body{margin:0;font-family:var(--font-sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px;background:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(154,123,255,0.14),transparent 60%),radial-gradient(ellipse 60% 60% at 80% 100%,rgba(106,201,255,0.1),transparent 60%),linear-gradient(180deg,var(--bg-1) 0%,var(--bg-0) 100%);background-attachment:fixed;}
+h1{margin:0 0 8px;font-size:32px;font-weight:700;letter-spacing:-0.02em;color:var(--text);}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){h1{background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}}
+h2{margin:0 0 12px;font-size:22px;font-weight:600;}h3{margin:0 0 8px;font-size:18px;font-weight:600;}
+.sub{color:var(--text-dim);margin:0 0 24px;font-size:15px;text-align:center;max-width:560px;}
+.back-link{position:fixed;top:20px;left:20px;color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:8px 14px;border-radius:var(--r-sm);background:rgba(29,36,66,0.7);border:1px solid var(--border);transition:all 0.2s var(--ease);z-index:10;}
+.back-link:hover{color:var(--text);background:rgba(46,55,106,0.8);border-color:var(--border-hi);transform:translateX(-2px);}
+.panel{background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-md);}
+.settings{background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 22px;margin-bottom:20px;display:grid;grid-template-columns:max-content 1fr;gap:14px 24px;align-items:center;box-shadow:var(--shadow-sm);transition:opacity 0.2s var(--ease);max-width:520px;width:100%;}
+.settings.locked{opacity:0.45;pointer-events:none;}
+.settings label{font-size:13px;color:var(--text-dim);font-weight:500;}
+.settings .val{font-weight:700;color:var(--text);margin-left:6px;font-variant-numeric:tabular-nums;}
+input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:6px;background:var(--bg-2);border-radius:3px;outline:none;border:1px solid var(--border);}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--surface);box-shadow:0 2px 6px rgba(0,0,0,0.4);}
+input[type="range"]:disabled{opacity:0.4;}
+input[type="checkbox"]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;}
+.settings-row{display:flex;align-items:center;gap:10px;}
+button{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;border:none;padding:11px 20px;border-radius:var(--r-sm);font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;transition:all 0.15s var(--ease);box-shadow:0 2px 8px rgba(106,201,255,0.25);}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 14px rgba(106,201,255,0.4);}
+button:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+button.big{padding:13px 32px;font-size:15px;}
+button.ghost{background:rgba(255,255,255,0.04);color:var(--text);border:1px solid var(--border-hi);box-shadow:none;}
+button.ghost:hover:not(:disabled){background:rgba(255,255,255,0.08);box-shadow:none;}
+.pill-group{display:inline-flex;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px;gap:2px;}
+.pill{background:transparent;color:var(--text-dim);border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:none;transition:all 0.15s var(--ease);}
+button.pill:hover:not(:disabled){color:var(--text);background:rgba(255,255,255,0.04);transform:none;box-shadow:none;}
+button.pill.active{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;box-shadow:0 2px 8px rgba(106,201,255,0.3);}
+.timer-bar{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:520px;margin-bottom:12px;padding:12px 18px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-md);}
+.timer{font-family:var(--font-mono);font-size:20px;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums;}
+.meta,.guess-counter,.attempts{font-size:13px;color:var(--text-dim);font-weight:500;}
+.status{margin-top:18px;text-align:center;min-height:24px;font-size:15px;color:var(--text);font-weight:500;}
+.status .new-best{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:10px;background:linear-gradient(135deg,#ffd77a,#ff9d4a);color:#1a0f00;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
+.hidden{display:none !important;}
+.board{background:linear-gradient(180deg,var(--surface) 0%,var(--bg-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-md);position:relative;}
+</style>
+<style>
+  .settings input[type="range"] { width: 180px; }
+
+  /* Board wraps shared .board + extras */
+  .board {
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    max-width: none;
+  }
+  .board.idle { padding: 48px 24px; }
+  .idle-msg { color: var(--text-faint); font-size: 14px; text-align: center; }
+
+  .sun-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    padding: 12px 4px;
+  }
+
+  .sun {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background:
+      radial-gradient(circle at 40% 35%, #fff5c9 0%, #ffdf7a 30%, #f1c40f 60%, #b87703 100%);
+    box-shadow:
+      0 0 30px rgba(241, 196, 15, 0.7),
+      0 0 60px rgba(241, 196, 15, 0.35),
+      inset -4px -6px 16px rgba(181, 118, 3, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6a4b00;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+  .arrow { color: var(--text-faint); font-size: 14px; flex-shrink: 0; }
+
+  .planet-slot {
+    width: 84px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 4px;
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: all 0.15s var(--ease);
+    border: 2px solid transparent;
+    background: transparent;
+  }
+  .planet-slot:hover {
+    background: rgba(255,255,255,0.05);
+    transform: translateY(-2px);
+  }
+  .planet-slot.selected {
+    border-color: var(--accent);
+    background: rgba(106,201,255,0.14);
+    box-shadow: 0 0 20px rgba(106,201,255,0.25);
+  }
+  .planet-slot.correct {
+    border-color: var(--success);
+    background: rgba(62,213,152,0.12);
+    box-shadow: 0 0 16px rgba(62,213,152,0.2);
+  }
+  .planet-slot.wrong { border-color: rgba(255,107,107,0.4); }
+  .planet-slot.fixed { cursor: default; }
+
+  .planet {
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    position: relative;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .planet-name {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .slot-index {
+    font-size: 10px;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+
+  /* Planet gradients */
+  .p-mercury { background: radial-gradient(circle at 35% 30%, #d5d5d5, #7a7a7a 60%, #4a4a4a); }
+  .p-venus   { background: radial-gradient(circle at 35% 30%, #fbefc9, #e4b775 55%, #a8762d); }
+  .p-earth   {
+    background:
+      radial-gradient(circle at 70% 65%, rgba(90, 165, 90, 0.6), transparent 30%),
+      radial-gradient(circle at 30% 40%, rgba(110, 180, 110, 0.5), transparent 25%),
+      radial-gradient(circle at 35% 30%, #87c5f0, #2456a0 60%, #0f2e5e);
+  }
+  .p-mars    { background: radial-gradient(circle at 35% 30%, #e89068, #a04225 60%, #5a1f0f); }
+  .p-jupiter {
+    background:
+      linear-gradient(0deg,
+        transparent 0 12%, rgba(120, 80, 40, 0.55) 12% 20%,
+        transparent 20% 32%, rgba(150, 100, 50, 0.45) 32% 40%,
+        transparent 40% 54%, rgba(120, 80, 40, 0.55) 54% 62%,
+        transparent 62% 74%, rgba(150, 100, 50, 0.45) 74% 82%,
+        transparent 82%),
+      radial-gradient(circle at 35% 30%, #f4d49a, #b08250 60%, #6a4a2a);
+  }
+  .p-saturn  {
+    background: radial-gradient(circle at 35% 30%, #fbe8b4, #c69b56 60%, #8a6530);
+  }
+  .p-saturn::after {
+    content: '';
+    position: absolute;
+    top: 46%; left: -22%;
+    width: 144%; height: 10%;
+    background: linear-gradient(90deg, transparent 0%, rgba(235, 210, 160, 0.95) 20%, rgba(235, 210, 160, 0.95) 80%, transparent 100%);
+    border-radius: 50%;
+    transform: rotate(-18deg);
+    box-shadow: 0 0 8px rgba(0,0,0,0.4);
+  }
+  .p-uranus  { background: radial-gradient(circle at 35% 30%, #d6f3fa, #6cb6d5 60%, #2e718d); }
+  .p-neptune { background: radial-gradient(circle at 35% 30%, #6c9cdf, #254a8e 60%, #0f2555); }
+  .p-pluto   {
+    background: radial-gradient(circle at 35% 30%, #d6bda5, #8a6a52 60%, #4e3a2b);
+    transform: scale(0.72);
+  }
+
+  .controls { margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  .feedback-msg {
+    margin-top: 14px;
+    padding: 12px 18px;
+    border-radius: var(--r-sm);
+    background: linear-gradient(135deg, rgba(106,201,255,0.1), rgba(154,123,255,0.08));
+    border: 1px solid rgba(106,201,255,0.2);
+    color: var(--text);
+    font-size: 14px;
+    text-align: center;
+    max-width: 560px;
+  }
+</style>
+</head>
+<body>
+  <script>
+window.GameFramework=(function(){
+function formatTime(t){const m=Math.floor(t/60).toString().padStart(2,'0'),s=(Math.floor(t)%60).toString().padStart(2,'0');return m+':'+s;}
+function createTimer(o){let st=0,el=0,iv=null;const d=o.display,lim=o.limitSeconds||0;function r(){if(!d)return;if(lim>0){const rem=Math.max(0,lim-el);d.textContent=formatTime(rem);d.style.color=rem<=10?'var(--danger)':'var(--accent)';}else{d.textContent=formatTime(el);d.style.color='var(--accent)';}}const api={start(){api.stop();st=Date.now();el=0;r();iv=setInterval(function(){el=Math.floor((Date.now()-st)/1000);r();if(o.onTick)o.onTick(el);if(lim>0&&el>=lim){api.stop();if(o.onExpire)o.onExpire();}},250);},stop(){if(iv){clearInterval(iv);iv=null;}},reset(){api.stop();el=0;r();},get elapsed(){return el;}};return api;}
+const K='gamesCreation.records.v1';
+function load(){try{const r=localStorage.getItem(K);return r?JSON.parse(r):{};}catch(e){return{};}}
+function save(r){try{localStorage.setItem(K,JSON.stringify(r));}catch(e){}}
+function recordWin(g,s,c){const a=load();const k=c?g+':'+c:g;const e=a[k]||{wins:0};const nb=e.bestSeconds==null||s<e.bestSeconds;a[k]={bestSeconds:nb?s:e.bestSeconds,wins:(e.wins||0)+1,lastPlayed:Date.now()};save(a);return{isNewBest:nb,bestSeconds:a[k].bestSeconds};}
+function getRecord(g){const a=load();const p=g+':';let b=null,w=0,lp=0;for(const k of Object.keys(a)){if(k!==g&&!k.startsWith(p))continue;const r=a[k];w+=r.wins||0;if(r.lastPlayed>lp)lp=r.lastPlayed;if(r.bestSeconds!=null&&(b==null||r.bestSeconds<b))b=r.bestSeconds;}if(w===0&&b==null)return null;return{bestSeconds:b,wins:w,lastPlayed:lp};}
+function injectBackLink(h){const a=document.createElement('a');a.className='back-link';a.href=h||'../index.html';a.textContent='\u2190 Menu';document.body.appendChild(a);}
+return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,getRecord:getRecord,injectBackLink:injectBackLink,loadRecords:load};
+})();
+GameFramework.injectBackLink();
+</script>
+  <h1>Planet Order</h1>
+  <div class="sub">Arrange the planets in the correct order from the Sun</div>
+
+  <div class="settings" id="settings">
+    <label>Planets: <span class="val" id="countVal">8</span></label>
+    <input type="range" id="countInput" min="3" max="9" value="8">
+
+    <label>Max attempts: <span class="val" id="attemptsVal">5</span></label>
+    <input type="range" id="attemptsInput" min="1" max="10" value="5">
+
+    <label>Feedback:</label>
+    <div class="hint-toggle pill-group" id="hintToggle">
+      <button data-hint="specific" class="pill active">Highlight correct</button>
+      <button data-hint="count" class="pill">Count only</button>
+    </div>
+
+    <label>Timer limit:
+      <span class="val" id="timerVal">off</span>
+    </label>
+    <div class="settings-row">
+      <input type="checkbox" id="timerEnabled">
+      <input type="range" id="timerInput" min="30" max="300" step="15" value="120" disabled>
+    </div>
+  </div>
+
+  <div class="timer-bar">
+    <div class="attempts" id="attemptsCounter">Not started</div>
+    <div class="timer" id="timerDisplay">00:00</div>
+  </div>
+
+  <div class="board idle" id="board">
+    <div class="idle-msg">Press <b>Start Game</b> to begin</div>
+  </div>
+
+  <div class="controls">
+    <button id="startBtn" class="big">Start Game</button>
+    <button id="submitBtn" class="hidden">Submit Order</button>
+    <button id="shuffleBtn" class="ghost hidden">Shuffle</button>
+    <button id="resetBtn" class="ghost hidden">Reset</button>
+  </div>
+
+  <div class="feedback-msg hidden" id="feedback"></div>
+  <div class="status" id="status"></div>
+
+<script>
+  // Canonical order (closest → farthest from Sun)
+  const PLANETS = [
+    { id: 'mercury', name: 'Mercury' },
+    { id: 'venus',   name: 'Venus'   },
+    { id: 'earth',   name: 'Earth'   },
+    { id: 'mars',    name: 'Mars'    },
+    { id: 'jupiter', name: 'Jupiter' },
+    { id: 'saturn',  name: 'Saturn'  },
+    { id: 'uranus',  name: 'Uranus'  },
+    { id: 'neptune', name: 'Neptune' },
+    { id: 'pluto',   name: 'Pluto'   },
+  ];
+
+  const config = {
+    count: 8,
+    maxAttempts: 5,
+    hintMode: 'specific', // 'specific' | 'count'
+    timerLimit: 0,
+  };
+
+  // state
+  let correctOrder = [];  // array of PLANETS entries in correct order
+  let currentOrder = [];  // current user arrangement (mutable)
+  let selectedIdx = null;
+  let attemptsUsed = 0;
+  let lastSubmission = null; // { correct: boolean[] } — for 'specific' feedback rendering
+  let gameState = 'idle'; // idle | playing | over
+  let timer = null;
+
+  // elements
+  const boardEl = document.getElementById('board');
+  const settingsEl = document.getElementById('settings');
+  const startBtn = document.getElementById('startBtn');
+  const submitBtn = document.getElementById('submitBtn');
+  const shuffleBtn = document.getElementById('shuffleBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const statusEl = document.getElementById('status');
+  const feedbackEl = document.getElementById('feedback');
+  const attemptsCounter = document.getElementById('attemptsCounter');
+  const timerDisplay = document.getElementById('timerDisplay');
+
+  const countInput = document.getElementById('countInput');
+  const countVal = document.getElementById('countVal');
+  const attemptsInput = document.getElementById('attemptsInput');
+  const attemptsVal = document.getElementById('attemptsVal');
+  const timerInput = document.getElementById('timerInput');
+  const timerEnabled = document.getElementById('timerEnabled');
+  const timerVal = document.getElementById('timerVal');
+  const hintToggle = document.getElementById('hintToggle');
+
+  let currentHintMode = 'specific';
+  hintToggle.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      if (gameState === 'playing') return;
+      currentHintMode = b.dataset.hint;
+      hintToggle.querySelectorAll('button').forEach(x =>
+        x.classList.toggle('active', x === b));
+    });
+  });
+
+  function updateSettingsDisplay() {
+    countVal.textContent = countInput.value;
+    attemptsVal.textContent = attemptsInput.value;
+    timerVal.textContent = timerEnabled.checked
+      ? window.GameFramework.formatTime(parseInt(timerInput.value, 10))
+      : 'off';
+  }
+  [countInput, attemptsInput, timerInput].forEach(el =>
+    el.addEventListener('input', updateSettingsDisplay));
+  timerEnabled.addEventListener('change', () => {
+    timerInput.disabled = !timerEnabled.checked;
+    updateSettingsDisplay();
+  });
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function arraysEqual(a, b) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (a[i].id !== b[i].id) return false;
+    return true;
+  }
+
+  function startGame() {
+    config.count = parseInt(countInput.value, 10);
+    config.maxAttempts = parseInt(attemptsInput.value, 10);
+    config.hintMode = currentHintMode;
+    config.timerLimit = timerEnabled.checked ? parseInt(timerInput.value, 10) : 0;
+
+    // Take the first `count` planets from the canonical order
+    correctOrder = PLANETS.slice(0, config.count);
+    do {
+      currentOrder = shuffle(correctOrder);
+    } while (arraysEqual(currentOrder, correctOrder)); // avoid starting solved
+
+    selectedIdx = null;
+    attemptsUsed = 0;
+    lastSubmission = null;
+    gameState = 'playing';
+    feedbackEl.classList.add('hidden');
+    statusEl.textContent = '';
+
+    settingsEl.classList.add('locked');
+    startBtn.classList.add('hidden');
+    submitBtn.classList.remove('hidden');
+    shuffleBtn.classList.remove('hidden');
+    resetBtn.classList.remove('hidden');
+    resetBtn.textContent = 'Reset';
+
+    boardEl.classList.remove('idle');
+
+    timer = window.GameFramework.createTimer({
+      display: timerDisplay,
+      limitSeconds: config.timerLimit,
+      onExpire: timeUp,
+    });
+    timer.start();
+    render();
+  }
+
+  function timeUp() {
+    if (gameState !== 'playing') return;
+    gameState = 'over';
+    statusEl.textContent = "Time's up! The correct order was: " +
+      correctOrder.map(p => p.name).join(' → ');
+    showPostGameControls();
+    render();
+  }
+
+  function showPostGameControls() {
+    submitBtn.classList.add('hidden');
+    shuffleBtn.classList.add('hidden');
+    startBtn.classList.remove('hidden');
+    startBtn.textContent = 'Play Again';
+    resetBtn.textContent = 'Change Settings';
+  }
+
+  function resetToIdle() {
+    if (timer) timer.reset();
+    gameState = 'idle';
+    correctOrder = [];
+    currentOrder = [];
+    selectedIdx = null;
+    attemptsUsed = 0;
+    lastSubmission = null;
+
+    settingsEl.classList.remove('locked');
+    startBtn.classList.remove('hidden');
+    startBtn.textContent = 'Start Game';
+    submitBtn.classList.add('hidden');
+    shuffleBtn.classList.add('hidden');
+    resetBtn.classList.add('hidden');
+
+    boardEl.classList.add('idle');
+    boardEl.innerHTML = '<div class="idle-msg">Press <b>Start Game</b> to begin</div>';
+    attemptsCounter.textContent = 'Not started';
+    timerDisplay.textContent = '00:00';
+    timerDisplay.style.color = 'var(--accent)';
+    feedbackEl.classList.add('hidden');
+    statusEl.textContent = '';
+  }
+
+  function render() {
+    if (gameState === 'idle') return;
+
+    attemptsCounter.textContent = gameState === 'playing'
+      ? `Attempt ${attemptsUsed + 1} of ${config.maxAttempts}`
+      : 'Game over';
+
+    boardEl.innerHTML = '';
+    const row = document.createElement('div');
+    row.className = 'sun-row';
+
+    const sun = document.createElement('div');
+    sun.className = 'sun';
+    sun.textContent = 'Sun';
+    row.appendChild(sun);
+
+    for (let i = 0; i < currentOrder.length; i++) {
+      const arrow = document.createElement('div');
+      arrow.className = 'arrow';
+      arrow.textContent = '→';
+      row.appendChild(arrow);
+
+      const slot = document.createElement('div');
+      slot.className = 'planet-slot';
+      if (i === selectedIdx) slot.classList.add('selected');
+      if (gameState === 'over') slot.classList.add('fixed');
+
+      // specific feedback highlight (from last submission)
+      if (lastSubmission && config.hintMode === 'specific') {
+        if (lastSubmission[i]) slot.classList.add('correct');
+        else if (gameState === 'playing') slot.classList.add('wrong');
+      }
+
+      const planet = document.createElement('div');
+      planet.className = 'planet p-' + currentOrder[i].id;
+      slot.appendChild(planet);
+
+      const name = document.createElement('div');
+      name.className = 'planet-name';
+      name.textContent = currentOrder[i].name;
+      slot.appendChild(name);
+
+      const idx = document.createElement('div');
+      idx.className = 'slot-index';
+      idx.textContent = '#' + (i + 1);
+      slot.appendChild(idx);
+
+      if (gameState === 'playing') {
+        slot.addEventListener('click', () => onSlotClick(i));
+      }
+      row.appendChild(slot);
+    }
+
+    boardEl.appendChild(row);
+  }
+
+  function onSlotClick(idx) {
+    if (selectedIdx === null) {
+      selectedIdx = idx;
+    } else if (selectedIdx === idx) {
+      selectedIdx = null; // deselect
+    } else {
+      // swap
+      [currentOrder[selectedIdx], currentOrder[idx]] = [currentOrder[idx], currentOrder[selectedIdx]];
+      selectedIdx = null;
+      // clear specific feedback from earlier submission once user moves things
+      lastSubmission = null;
+    }
+    render();
+  }
+
+  submitBtn.addEventListener('click', () => {
+    if (gameState !== 'playing') return;
+    const correctFlags = currentOrder.map((p, i) => p.id === correctOrder[i].id);
+    const correctCount = correctFlags.filter(Boolean).length;
+    attemptsUsed++;
+
+    if (correctCount === correctOrder.length) {
+      gameState = 'over';
+      timer.stop();
+      lastSubmission = correctFlags;
+      const elapsed = timer.elapsed;
+      const configKey = `p${config.count}-${config.hintMode}`;
+      const result = window.GameFramework.recordWin('planet-order', elapsed, configKey);
+      const newBest = result.isNewBest ? ' — new best!' : '';
+      statusEl.textContent = `Solved in ${attemptsUsed} attempt${attemptsUsed === 1 ? '' : 's'} (${window.GameFramework.formatTime(elapsed)})${newBest}`;
+      feedbackEl.classList.add('hidden');
+      showPostGameControls();
+      render();
+      return;
+    }
+
+    // not yet solved
+    if (config.hintMode === 'specific') {
+      lastSubmission = correctFlags;
+      feedbackEl.textContent = `${correctCount} of ${correctOrder.length} in the right place. Correct ones highlighted in green.`;
+    } else {
+      lastSubmission = null;
+      feedbackEl.textContent = `${correctCount} of ${correctOrder.length} in the right place.`;
+    }
+    feedbackEl.classList.remove('hidden');
+
+    if (attemptsUsed >= config.maxAttempts) {
+      gameState = 'over';
+      timer.stop();
+      statusEl.textContent = 'Out of attempts. Correct order: ' +
+        correctOrder.map(p => p.name).join(' → ');
+      // show the correct order in the board: replace user's with the real one for reveal
+      currentOrder = correctOrder.slice();
+      lastSubmission = currentOrder.map(() => true);
+      showPostGameControls();
+    }
+
+    render();
+  });
+
+  shuffleBtn.addEventListener('click', () => {
+    if (gameState !== 'playing') return;
+    do { currentOrder = shuffle(currentOrder); }
+    while (arraysEqual(currentOrder, correctOrder));
+    selectedIdx = null;
+    lastSubmission = null;
+    render();
+  });
+
+  startBtn.addEventListener('click', startGame);
+  resetBtn.addEventListener('click', resetToIdle);
+
+  // init
+  updateSettingsDisplay();
+</script>
+</body>
+</html>

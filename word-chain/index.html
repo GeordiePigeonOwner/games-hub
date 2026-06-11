@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Word Chain</title>
+<style>
+:root{--bg-0:#0b0f1e;--bg-1:#131831;--bg-2:#1a2040;--surface:#1d2442;--surface-2:#252c52;--surface-hi:#2e376a;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.14);--text:#eef1ff;--text-dim:rgba(238,241,255,0.62);--text-faint:rgba(238,241,255,0.38);--accent:#6ac9ff;--accent-2:#9a7bff;--medieval:#d0454c;--success:#3ed598;--gold:#ffd77a;--danger:#ff6b6b;--r-sm:8px;--r-md:12px;--r-lg:16px;--shadow-sm:0 2px 8px rgba(0,0,0,0.25);--shadow-md:0 8px 24px rgba(0,0,0,0.35);--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--font-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;--ease:cubic-bezier(0.4,0,0.2,1);}
+*{box-sizing:border-box;}html,body{height:100%;}
+body{margin:0;font-family:var(--font-sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px;background:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(208,69,76,0.14),transparent 60%),radial-gradient(ellipse 60% 60% at 80% 100%,rgba(106,201,255,0.1),transparent 60%),linear-gradient(180deg,var(--bg-1) 0%,var(--bg-0) 100%);background-attachment:fixed;}
+h1{margin:0 0 8px;font-size:32px;font-weight:700;letter-spacing:-0.02em;color:var(--text);}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){h1{background:linear-gradient(135deg,#d0454c 0%,#ffb1b5 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}}
+.sub{color:var(--text-dim);margin:0 0 24px;font-size:15px;text-align:center;max-width:620px;}
+.back-link{position:fixed;top:20px;left:20px;color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:8px 14px;border-radius:var(--r-sm);background:rgba(29,36,66,0.7);border:1px solid var(--border);transition:all 0.2s var(--ease);z-index:10;}
+.back-link:hover{color:var(--text);background:rgba(46,55,106,0.8);border-color:var(--border-hi);transform:translateX(-2px);}
+.settings{background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 22px;margin-bottom:20px;display:grid;grid-template-columns:max-content 1fr;gap:14px 24px;align-items:center;box-shadow:var(--shadow-sm);transition:opacity 0.2s var(--ease);max-width:460px;width:100%;}
+.settings.locked{opacity:0.45;pointer-events:none;}
+.settings label{font-size:13px;color:var(--text-dim);font-weight:500;}
+button{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;border:none;padding:11px 20px;border-radius:var(--r-sm);font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;transition:all 0.15s var(--ease);box-shadow:0 2px 8px rgba(106,201,255,0.25);}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 14px rgba(106,201,255,0.4);}
+button:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+button.big{padding:13px 32px;font-size:15px;}
+button.ghost{background:rgba(255,255,255,0.04);color:var(--text);border:1px solid var(--border-hi);box-shadow:none;}
+button.ghost:hover:not(:disabled){background:rgba(255,255,255,0.08);box-shadow:none;}
+.pill-group{display:inline-flex;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px;gap:2px;}
+.pill{background:transparent;color:var(--text-dim);border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:none;}
+button.pill:hover:not(:disabled){color:var(--text);background:rgba(255,255,255,0.04);transform:none;box-shadow:none;}
+button.pill.active{background:linear-gradient(135deg,#d0454c 0%,#ffb1b5 100%);color:#2a0308;}
+.timer-bar{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:460px;margin-bottom:12px;padding:12px 18px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-md);}
+.timer{font-family:var(--font-mono);font-size:20px;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums;}
+.meta{font-size:13px;color:var(--text-dim);font-weight:500;}
+.status{margin-top:18px;text-align:center;min-height:24px;font-size:15px;color:var(--text);font-weight:500;}
+.status .new-best{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:10px;background:linear-gradient(135deg,#ffd77a,#ff9d4a);color:#1a0f00;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
+.hidden{display:none !important;}
+.board{background:linear-gradient(180deg,var(--surface) 0%,var(--bg-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;box-shadow:var(--shadow-md);display:flex;flex-direction:column;align-items:center;gap:10px;}
+.board.idle{padding:48px 24px;min-height:220px;min-width:340px;justify-content:center;}
+.idle-msg{color:var(--text-faint);font-size:14px;text-align:center;}
+
+.chain-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;}
+.word-slot{
+  min-width:110px;padding:14px 18px;
+  background:linear-gradient(180deg,var(--surface-hi),var(--surface-2));
+  border:2px solid var(--border-hi);
+  border-radius:var(--r-md);
+  font-weight:700;font-size:15px;letter-spacing:0.04em;text-align:center;
+  cursor:pointer;user-select:none;
+  transition:all 0.15s var(--ease);
+}
+.word-slot:hover:not(.fixed){border-color:var(--medieval);transform:translateY(-2px);box-shadow:0 6px 14px rgba(208,69,76,0.25);}
+.word-slot.selected{border-color:var(--medieval);box-shadow:0 0 18px rgba(208,69,76,0.4);background:linear-gradient(180deg,rgba(208,69,76,0.2),rgba(208,69,76,0.05));}
+.word-slot.fixed{cursor:default;background:linear-gradient(180deg,rgba(255,215,122,0.15),rgba(255,157,74,0.08));border-color:rgba(255,215,122,0.4);color:var(--gold);}
+.word-slot.valid-link{border-color:var(--success);box-shadow:0 0 14px rgba(62,213,152,0.25);}
+.word-slot.invalid-link{border-color:rgba(255,107,107,0.5);}
+
+.link-letter{
+  font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--text-dim);
+  padding:0 2px;
+}
+.link-letter.good{color:var(--success);}
+.link-letter.bad{color:var(--danger);}
+
+.controls{margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+  <script>
+window.GameFramework=(function(){
+function formatTime(t){const m=Math.floor(t/60).toString().padStart(2,'0'),s=(Math.floor(t)%60).toString().padStart(2,'0');return m+':'+s;}
+function createTimer(o){let st=0,el=0,iv=null;const d=o.display,lim=o.limitSeconds||0;function r(){if(!d)return;if(lim>0){const rem=Math.max(0,lim-el);d.textContent=formatTime(rem);d.style.color=rem<=10?'var(--danger)':'var(--accent)';}else{d.textContent=formatTime(el);d.style.color='var(--accent)';}}const api={start(){api.stop();st=Date.now();el=0;r();iv=setInterval(function(){el=Math.floor((Date.now()-st)/1000);r();if(o.onTick)o.onTick(el);if(lim>0&&el>=lim){api.stop();if(o.onExpire)o.onExpire();}},250);},stop(){if(iv){clearInterval(iv);iv=null;}},reset(){api.stop();el=0;r();},get elapsed(){return el;}};return api;}
+const K='gamesCreation.records.v1';
+function load(){try{const r=localStorage.getItem(K);return r?JSON.parse(r):{};}catch(e){return{};}}
+function save(r){try{localStorage.setItem(K,JSON.stringify(r));}catch(e){}}
+function recordWin(g,s,c){const a=load();const k=c?g+':'+c:g;const e=a[k]||{wins:0};const nb=e.bestSeconds==null||s<e.bestSeconds;a[k]={bestSeconds:nb?s:e.bestSeconds,wins:(e.wins||0)+1,lastPlayed:Date.now()};save(a);return{isNewBest:nb};}
+function injectBackLink(h){const a=document.createElement('a');a.className='back-link';a.href=h||'../index.html';a.textContent='\u2190 Menu';document.body.appendChild(a);}
+return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,injectBackLink:injectBackLink};
+})();
+GameFramework.injectBackLink();
+</script>
+
+  <h1>Word Chain</h1>
+  <div class="sub">Arrange the words so the last letter of each matches the first letter of the next. First word is fixed.</div>
+
+  <div class="settings" id="settings">
+    <label>Chain length:</label>
+    <div class="pill-group" id="lenToggle">
+      <button class="pill active" data-len="4">4 words</button>
+      <button class="pill" data-len="5">5 words</button>
+      <button class="pill" data-len="6">6 words</button>
+    </div>
+  </div>
+
+  <div class="timer-bar">
+    <div class="meta" id="progressMeta">Not started</div>
+    <div class="timer" id="timerDisplay">00:00</div>
+  </div>
+
+  <div class="board idle" id="board">
+    <div class="idle-msg">Press <b>Start Game</b> to begin</div>
+  </div>
+
+  <div class="controls">
+    <button id="startBtn" class="big">Start Game</button>
+    <button id="submitBtn" class="hidden">Submit</button>
+    <button id="resetBtn" class="ghost hidden">Reset</button>
+  </div>
+
+  <div class="status" id="status"></div>
+
+<script>
+  // Pre-authored chains. Each chain validly links by last-letter/first-letter.
+  const CHAINS = [
+    ['CAT','TIGER','RIVER','ROCK','KITE','EAGLE'],
+    ['DOG','GIRAFFE','ELEPHANT','TREE','EAGLE','EARTH'],
+    ['BIRD','DRUM','MOUSE','EAR','RABBIT','TIGER'],
+    ['SUN','NEST','THUNDER','ROCK','KEY','YAK'],
+    ['MOON','NIGHT','TIGER','RIVER','ROCKET','TREE'],
+    ['APPLE','EGG','GOAT','TIGER','RIVER','ROOT'],
+    ['OCEAN','NEST','THUNDER','RAVEN','NOVEMBER','ROCK'],
+    ['FISH','HOUSE','EAGLE','ELEPHANT','TREE','EAR'],
+    ['SNAKE','EAR','RABBIT','TIGER','RIVER','ROCK'],
+    ['STAR','RIVER','ROOT','TIGER','RAVEN','NORTH'],
+    ['FIRE','ECHO','OCEAN','NEST','THUNDER','RAVEN'],
+    ['WHALE','EAGLE','ELEPHANT','TIGER','RIVER','ROCK'],
+    ['LION','NOMAD','DRAGON','NIGHT','TIGER','RIVER'],
+    ['HORSE','EAGLE','ELK','KITCHEN','NIGHT','TIGER'],
+    ['PLANET','THUNDER','RIVER','ROOT','TIGER','RAIN'],
+    ['MOUNTAIN','NORTH','HOUSE','EAGLE','ELEPHANT','TREE'],
+    ['CLOUD','DESERT','THUNDER','ROCK','KITE','EAGLE'],
+    ['VALLEY','YAK','KING','GIRAFFE','ELEPHANT','TREE'],
+    ['BRIDGE','ECHO','OCEAN','NIGHT','TIGER','RIVER'],
+    ['ANCHOR','ROOT','TREE','EAGLE','ELK','KITE'],
+  ];
+
+  const config = { length: 4 };
+  let chain = [];       // full correct chain
+  let start = '';       // fixed first word
+  let current = [];     // user's arrangement (excluding start)
+  let selected = null;
+  let gameState = 'idle';
+  let timer = null;
+
+  const $ = (id) => document.getElementById(id);
+  const boardEl = $('board'), settingsEl = $('settings');
+  const startBtn = $('startBtn'), submitBtn = $('submitBtn'), resetBtn = $('resetBtn');
+  const statusEl = $('status'), progressMeta = $('progressMeta');
+  const timerDisplay = $('timerDisplay');
+  const lenToggle = $('lenToggle');
+
+  let currentLen = 4;
+  lenToggle.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      if (gameState === 'playing') return;
+      currentLen = parseInt(b.dataset.len, 10);
+      lenToggle.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+    });
+  });
+
+  function shuffle(a) {
+    const x = a.slice();
+    for (let i = x.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [x[i], x[j]] = [x[j], x[i]];
+    }
+    return x;
+  }
+  function arraysEqual(a, b) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+    return true;
+  }
+
+  function startGame() {
+    config.length = currentLen;
+    // pick a random chain of at least `length` words
+    const eligible = CHAINS.filter(c => c.length >= config.length);
+    const picked = eligible[Math.floor(Math.random() * eligible.length)];
+    chain = picked.slice(0, config.length);
+    start = chain[0];
+    const rest = chain.slice(1);
+
+    do { current = shuffle(rest); } while (arraysEqual(current, rest));
+
+    selected = null;
+    gameState = 'playing';
+    statusEl.textContent = '';
+
+    settingsEl.classList.add('locked');
+    startBtn.classList.add('hidden');
+    submitBtn.classList.remove('hidden');
+    resetBtn.classList.remove('hidden');
+    resetBtn.textContent = 'Reset';
+
+    timer = window.GameFramework.createTimer({ display: timerDisplay });
+    timer.start();
+    render();
+  }
+
+  function render() {
+    boardEl.innerHTML = '';
+    boardEl.classList.remove('idle');
+
+    const row = document.createElement('div');
+    row.className = 'chain-row';
+
+    // Build full display list: [start, ...current]
+    const full = [start, ...current];
+    for (let i = 0; i < full.length; i++) {
+      if (i > 0) {
+        const link = document.createElement('div');
+        link.className = 'link-letter';
+        const lastLetter = full[i - 1].slice(-1);
+        const firstLetter = full[i].slice(0, 1);
+        link.textContent = `${lastLetter} → ${firstLetter}`;
+        if (lastLetter === firstLetter) link.classList.add('good');
+        else link.classList.add('bad');
+        row.appendChild(link);
+      }
+      const slot = document.createElement('div');
+      slot.className = 'word-slot' + (i === 0 ? ' fixed' : '');
+      // Live feedback: valid link on both sides?
+      if (i > 0) {
+        const leftOk = full[i - 1].slice(-1) === full[i].slice(0, 1);
+        if (leftOk) slot.classList.add('valid-link');
+      }
+      if (i - 1 === selected) slot.classList.add('selected');
+      slot.textContent = full[i];
+      if (gameState === 'playing' && i > 0) {
+        slot.addEventListener('click', () => onSlot(i - 1));
+      }
+      row.appendChild(slot);
+    }
+
+    boardEl.appendChild(row);
+
+    const goodLinks = countGoodLinks();
+    progressMeta.textContent = gameState === 'playing'
+      ? `${goodLinks} / ${config.length - 1} links valid`
+      : 'Game over';
+  }
+
+  function countGoodLinks() {
+    const full = [start, ...current];
+    let n = 0;
+    for (let i = 1; i < full.length; i++) {
+      if (full[i - 1].slice(-1) === full[i].slice(0, 1)) n++;
+    }
+    return n;
+  }
+
+  function onSlot(idx) {
+    if (gameState !== 'playing') return;
+    if (selected === null) { selected = idx; }
+    else if (selected === idx) { selected = null; }
+    else {
+      [current[selected], current[idx]] = [current[idx], current[selected]];
+      selected = null;
+    }
+    render();
+  }
+
+  submitBtn.addEventListener('click', () => {
+    if (gameState !== 'playing') return;
+    const full = [start, ...current];
+    let allOk = true;
+    for (let i = 1; i < full.length; i++) {
+      if (full[i - 1].slice(-1) !== full[i].slice(0, 1)) { allOk = false; break; }
+    }
+    if (allOk) {
+      gameState = 'over'; timer.stop();
+      const res = window.GameFramework.recordWin('word-chain', timer.elapsed, `len${config.length}`);
+      const nb = res.isNewBest ? '<span class="new-best">NEW BEST</span>' : '';
+      statusEl.innerHTML = `Chain complete in ${window.GameFramework.formatTime(timer.elapsed)} ${nb}`;
+      submitBtn.classList.add('hidden');
+      startBtn.classList.remove('hidden'); startBtn.textContent = 'Play Again';
+      resetBtn.textContent = 'Change Settings';
+      render();
+    } else {
+      statusEl.textContent = 'Not yet — some links don\'t match. Keep swapping.';
+    }
+  });
+
+  function resetIdle() {
+    if (timer) timer.reset();
+    gameState = 'idle';
+    chain = []; start = ''; current = []; selected = null;
+    settingsEl.classList.remove('locked');
+    startBtn.classList.remove('hidden'); startBtn.textContent = 'Start Game';
+    submitBtn.classList.add('hidden'); resetBtn.classList.add('hidden');
+    boardEl.classList.add('idle');
+    boardEl.innerHTML = '<div class="idle-msg">Press <b>Start Game</b> to begin</div>';
+    progressMeta.textContent = 'Not started';
+    timerDisplay.textContent = '00:00';
+    statusEl.textContent = '';
+  }
+
+  startBtn.addEventListener('click', startGame);
+  resetBtn.addEventListener('click', resetIdle);
+</script>
+</body>
+</html>
