@@ -2,422 +2,857 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Countdown</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Countdown — Games Creation</title>
+<script src="../shared/words.js"></script>
 <style>
-:root{--bg-0:#0b0f1e;--bg-1:#131831;--bg-2:#1a2040;--surface:#1d2442;--surface-2:#252c52;--surface-hi:#2e376a;--border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.14);--text:#eef1ff;--text-dim:rgba(238,241,255,0.62);--text-faint:rgba(238,241,255,0.38);--accent:#6ac9ff;--accent-2:#9a7bff;--accent-grad:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);--success:#3ed598;--gold:#ffd77a;--danger:#ff6b6b;--warn:#ffb86c;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--shadow-sm:0 2px 8px rgba(0,0,0,0.25);--shadow-md:0 8px 24px rgba(0,0,0,0.35);--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--font-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;--ease:cubic-bezier(0.4,0,0.2,1);}
-*{box-sizing:border-box;}html,body{height:100%;}
-body{margin:0;font-family:var(--font-sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px;background:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(154,123,255,0.14),transparent 60%),radial-gradient(ellipse 60% 60% at 80% 100%,rgba(106,201,255,0.1),transparent 60%),linear-gradient(180deg,var(--bg-1) 0%,var(--bg-0) 100%);background-attachment:fixed;}
-h1{margin:0 0 8px;font-size:32px;font-weight:700;letter-spacing:-0.02em;color:var(--text);}
-@supports ((-webkit-background-clip:text) or (background-clip:text)){h1{background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}}
-h2{margin:0 0 12px;font-size:22px;font-weight:600;}h3{margin:0 0 8px;font-size:18px;font-weight:600;}
-.sub{color:var(--text-dim);margin:0 0 24px;font-size:15px;text-align:center;max-width:560px;}
-.back-link{position:fixed;top:20px;left:20px;color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:8px 14px;border-radius:var(--r-sm);background:rgba(29,36,66,0.7);border:1px solid var(--border);transition:all 0.2s var(--ease);z-index:10;}
-.back-link:hover{color:var(--text);background:rgba(46,55,106,0.8);border-color:var(--border-hi);transform:translateX(-2px);}
-.panel{background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-md);}
-.settings{background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 22px;margin-bottom:20px;display:grid;grid-template-columns:max-content 1fr;gap:14px 24px;align-items:center;box-shadow:var(--shadow-sm);transition:opacity 0.2s var(--ease);max-width:520px;width:100%;}
-.settings.locked{opacity:0.45;pointer-events:none;}
-.settings label{font-size:13px;color:var(--text-dim);font-weight:500;}
-.settings .val{font-weight:700;color:var(--text);margin-left:6px;font-variant-numeric:tabular-nums;}
-input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:6px;background:var(--bg-2);border-radius:3px;outline:none;border:1px solid var(--border);}
-input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--surface);box-shadow:0 2px 6px rgba(0,0,0,0.4);}
-input[type="range"]:disabled{opacity:0.4;}
-input[type="checkbox"]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;}
-.settings-row{display:flex;align-items:center;gap:10px;}
-button{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;border:none;padding:11px 20px;border-radius:var(--r-sm);font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;transition:all 0.15s var(--ease);box-shadow:0 2px 8px rgba(106,201,255,0.25);}
-button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 14px rgba(106,201,255,0.4);}
-button:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
-button.big{padding:13px 32px;font-size:15px;}
-button.ghost{background:rgba(255,255,255,0.04);color:var(--text);border:1px solid var(--border-hi);box-shadow:none;}
-button.ghost:hover:not(:disabled){background:rgba(255,255,255,0.08);box-shadow:none;}
-.pill-group{display:inline-flex;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px;gap:2px;}
-.pill{background:transparent;color:var(--text-dim);border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:none;transition:all 0.15s var(--ease);}
-button.pill:hover:not(:disabled){color:var(--text);background:rgba(255,255,255,0.04);transform:none;box-shadow:none;}
-button.pill.active{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);color:#0a1020;box-shadow:0 2px 8px rgba(106,201,255,0.3);}
-.timer-bar{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:520px;margin-bottom:12px;padding:12px 18px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:var(--r-md);}
-.timer{font-family:var(--font-mono);font-size:20px;color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums;}
-.meta,.guess-counter,.attempts{font-size:13px;color:var(--text-dim);font-weight:500;}
-.status{margin-top:18px;text-align:center;min-height:24px;font-size:15px;color:var(--text);font-weight:500;}
-.status .new-best{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:10px;background:linear-gradient(135deg,#ffd77a,#ff9d4a);color:#1a0f00;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
-.hidden{display:none !important;}
-.board{background:linear-gradient(180deg,var(--surface) 0%,var(--bg-2) 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-md);position:relative;}
-</style>
-<style>
-  .settings input[type="range"] { width: 180px; }
+:root{
+  --bg-0:#0b0f1e;--bg-1:#131831;--surface:#1d2442;
+  --border:rgba(255,255,255,0.08);--border-hi:rgba(255,255,255,0.16);
+  --text:#eef1ff;--text-dim:rgba(238,241,255,0.65);--text-faint:rgba(238,241,255,0.42);
+  --accent:#6ac9ff;--gold:#ffd77a;--success:#3ed598;--danger:#ff6b6b;
+  --tile-blue:#1b3f8f;--tile-blue-hi:#2d5cc0;
+  --ease:cubic-bezier(0.4,0,0.2,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{margin:0;font-family:'Inter',-apple-system,'Segoe UI',Roboto,sans-serif;font-size:15px;color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:16px;
+  background:radial-gradient(1200px 700px at 50% -10%,#13234d 0%,var(--bg-0) 55%,#050812 100%);}
+.back-link{position:fixed;top:12px;left:12px;color:var(--text-dim);text-decoration:none;font-size:13px;
+  padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:rgba(20,24,50,0.6);z-index:10;}
+.back-link:hover{color:var(--text);border-color:var(--border-hi);}
+h1{font-size:30px;font-weight:900;margin:10px 0 2px;letter-spacing:-0.02em;text-align:center;}
+@supports (background-clip:text){h1{background:linear-gradient(135deg,#6ac9ff 0%,#ffd77a 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}}
+.subtitle{color:var(--text-dim);font-size:13.5px;margin:0 0 18px;text-align:center;max-width:560px;}
+section.scr{display:none;width:100%;max-width:920px;flex-direction:column;align-items:center;}
+section.scr.show{display:flex;}
+button{font-family:inherit;font-size:14px;font-weight:700;padding:11px 20px;border-radius:10px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#6ac9ff,#3a7fd0);color:#0b0f1e;transition:all .15s var(--ease);}
+button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 18px rgba(106,201,255,0.35);}
+button:disabled{opacity:0.35;cursor:not-allowed;}
+button.ghost{background:rgba(255,255,255,0.07);color:var(--text);border:1px solid var(--border);}
+button.ghost:hover:not(:disabled){border-color:var(--border-hi);box-shadow:none;}
+button.gold{background:linear-gradient(135deg,#ffd77a,#f0b840);color:#241a02;}
+button.good{background:linear-gradient(135deg,#3ed598,#2bb583);color:#04130c;}
+input[type=text],input[type=password]{background:rgba(0,0,0,0.32);border:1px solid var(--border);border-radius:10px;color:var(--text);
+  padding:12px 14px;font-size:17px;font-family:'JetBrains Mono',monospace;outline:none;width:100%;}
+input:focus{border-color:var(--accent);}
+.card{background:linear-gradient(180deg,rgba(29,36,66,0.85),rgba(19,24,49,0.9));border:1px solid var(--border);
+  border-radius:16px;padding:22px 24px;box-shadow:0 14px 44px rgba(0,0,0,0.45);}
+.kicker{font-size:11px;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-faint);}
 
-  .target-display {
-    background: linear-gradient(135deg, rgba(106,201,255,0.12), rgba(154,123,255,0.1));
-    border: 1px solid rgba(106,201,255,0.28);
-    padding: 14px 28px;
-    border-radius: var(--r-md);
-    margin-bottom: 14px;
-    text-align: center;
-    min-width: 280px;
-  }
-  .target-label {
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    font-weight: 700;
-  }
-  .target-num {
-    font-family: var(--font-mono);
-    font-size: 48px;
-    font-weight: 700;
-    color: var(--accent);
-    line-height: 1;
-    margin-top: 4px;
-    font-variant-numeric: tabular-nums;
-  }
-  .target-num.done {
-    background: linear-gradient(135deg, #ffd77a, #3ed598);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+/* landing */
+.land-grid{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+.land-grid .card{width:300px;display:flex;flex-direction:column;gap:12px;}
+.land-grid h3{margin:0;font-size:17px;}
+.pillrow{display:flex;gap:8px;}
+.pill{flex:1;background:rgba(0,0,0,0.25);border:1.5px solid var(--border);border-radius:10px;padding:10px;cursor:pointer;
+  color:var(--text);font-weight:700;font-size:13px;text-align:center;}
+.pill small{display:block;color:var(--text-dim);font-weight:500;font-size:11px;margin-top:2px;}
+.pill.active{border-color:var(--accent);background:rgba(106,201,255,0.1);}
 
-  .board {
-    display: grid;
-    gap: 6px;
-    padding: 18px;
-    max-width: 760px;
-    width: 100%;
-  }
+/* game header */
+.ghead{display:flex;gap:12px;width:100%;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;}
+.roundinfo .rno{font-size:11px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-faint);}
+.roundinfo .rtype{font-size:20px;font-weight:900;}
+.scores{display:flex;gap:10px;}
+.scorebox{border:1.5px solid var(--border);border-radius:12px;padding:8px 16px;text-align:center;min-width:110px;background:rgba(0,0,0,0.2);}
+.scorebox.lead{border-color:var(--gold);box-shadow:0 0 14px rgba(255,215,122,0.25);}
+.scorebox .nm{font-size:11.5px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);}
+.scorebox .pt{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;color:var(--gold);}
+.scorebox .mx{font-size:10.5px;color:var(--text-faint);}
 
-  .num-btn {
-    position: relative;
-    aspect-ratio: 1;
-    background: linear-gradient(180deg, var(--surface-2), var(--bg-2));
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-family: var(--font-mono);
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    padding: 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
-    transition: all 0.12s var(--ease);
-    font-variant-numeric: tabular-nums;
-  }
-  .num-btn:hover:not(.done):not(:disabled) {
-    border-color: var(--accent);
-    background: linear-gradient(180deg, var(--surface-hi), var(--surface-2));
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(106,201,255,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
-  }
-  .num-btn.done {
-    background: linear-gradient(180deg, rgba(62,213,152,0.22), rgba(62,213,152,0.1));
-    border-color: rgba(62,213,152,0.45);
-    color: var(--text-faint);
-    cursor: default;
-    box-shadow: none;
-  }
-  .num-btn.done::after {
-    content: '✓';
-    position: absolute;
-    top: 3px; right: 5px;
-    font-size: 10px;
-    color: var(--success);
-  }
-  .num-btn.wrong {
-    animation: shake 0.35s var(--ease);
-    background: linear-gradient(180deg, rgba(255,107,107,0.3), rgba(255,107,107,0.1));
-    border-color: rgba(255,107,107,0.6);
-  }
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25%      { transform: translateX(-4px); }
-    75%      { transform: translateX(4px); }
-  }
+/* clock */
+.clockwrap{display:flex;justify-content:center;margin:6px 0 10px;}
+.cclock{width:120px;height:120px;}
+.cclock .face{fill:rgba(0,0,0,0.3);stroke:rgba(106,201,255,0.4);stroke-width:2;}
+.cclock .tickmark{stroke:rgba(238,241,255,0.35);stroke-width:2;}
+.cclock .hand{stroke:#ffd77a;stroke-width:4;stroke-linecap:round;filter:drop-shadow(0 0 6px rgba(255,215,122,0.7));}
+.cclock .sweep{fill:rgba(106,201,255,0.12);}
+.cclock text{fill:var(--text);font-family:'JetBrains Mono',monospace;font-weight:800;font-size:22px;text-anchor:middle;}
 
-  .penalty-flash {
-    position: absolute;
-    color: var(--danger);
-    font-weight: 700;
-    font-size: 14px;
-    pointer-events: none;
-    animation: flashUp 0.8s ease-out forwards;
-    z-index: 100;
-  }
-  @keyframes flashUp {
-    0%   { opacity: 1; transform: translate(-50%, 0); }
-    100% { opacity: 0; transform: translate(-50%, -32px); }
-  }
+/* tiles */
+.tilerow{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:10px 0;}
+.tile{width:56px;height:64px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-weight:800;font-size:30px;color:#fff;text-transform:uppercase;
+  background:linear-gradient(180deg,var(--tile-blue-hi),var(--tile-blue));border:1px solid rgba(255,255,255,0.18);
+  box-shadow:0 6px 16px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.25);}
+.tile.empty{background:rgba(255,255,255,0.04);border:1.5px dashed var(--border);box-shadow:none;}
+.tile.num{width:72px;font-size:24px;}
+.tile.pop{animation:tilepop .3s var(--ease);}
+@keyframes tilepop{0%{transform:scale(0.5);opacity:0}100%{transform:scale(1);opacity:1}}
+.target-display{font-family:'JetBrains Mono',monospace;font-size:54px;font-weight:800;color:#ff8c8c;
+  background:rgba(0,0,0,0.5);border:2px solid rgba(255,107,107,0.5);border-radius:14px;padding:4px 30px;
+  text-shadow:0 0 24px rgba(255,107,107,0.8);letter-spacing:0.08em;margin:6px auto;display:inline-block;}
 
-  .controls { margin-top: 18px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  .idle-msg { color: var(--text-faint); font-size: 14px; text-align: center; padding: 40px; }
+/* controls / inputs */
+.centercol{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;}
+.pickrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.statusline{min-height:24px;font-weight:700;text-align:center;font-size:15px;}
+.statusline.good{color:var(--success);}.statusline.bad{color:var(--danger);}.statusline.gold{color:var(--gold);}
+.answer-grid{display:flex;gap:14px;width:100%;justify-content:center;flex-wrap:wrap;}
+.answer-box{flex:1;min-width:260px;max-width:380px;border:1.5px solid var(--border);border-radius:14px;padding:14px;background:rgba(0,0,0,0.2);}
+.answer-box.locked{border-color:var(--success);}
+.answer-box h5{margin:0 0 8px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);}
+.answer-box .inrow{display:flex;gap:8px;}
+.answer-box .hint{font-size:11px;color:var(--text-faint);margin-top:6px;min-height:14px;}
+
+/* reveal */
+.reveal{width:100%;max-width:680px;border:1px solid var(--border-hi);border-radius:16px;padding:18px 22px;
+  background:linear-gradient(180deg,#1d2442,#161b35);margin-top:8px;}
+.reveal .rv-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed var(--border);gap:10px;flex-wrap:wrap;}
+.reveal .rv-row:last-child{border-bottom:none;}
+.reveal .who{font-weight:800;}
+.reveal .what{font-family:'JetBrains Mono',monospace;font-size:17px;letter-spacing:0.04em;}
+.reveal .what.bad{color:var(--danger);text-decoration:line-through;}
+.reveal .what.good{color:var(--success);}
+.reveal .pts{font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--gold);min-width:64px;text-align:right;}
+.reveal .bestline{font-size:13.5px;color:var(--text-dim);}
+.reveal .bestline strong{color:var(--accent);font-family:'JetBrains Mono',monospace;letter-spacing:0.05em;}
+.nextrow{display:flex;gap:10px;justify-content:center;margin:14px 0 40px;}
+
+/* conundrum buzz */
+.buzzrow{display:flex;gap:14px;justify-content:center;width:100%;flex-wrap:wrap;}
+.buzzbtn{flex:1;min-width:200px;max-width:300px;padding:20px;font-size:18px;font-weight:900;border-radius:16px;text-transform:uppercase;
+  background:linear-gradient(135deg,#ff5252,#d32f2f);color:#fff;box-shadow:0 5px 0 #8e1f1f;}
+.buzzbtn:active:not(:disabled){transform:translateY(4px);box-shadow:0 1px 0 #8e1f1f;}
+.buzzbtn:hover:not(:disabled){transform:none;}
+
+/* final */
+.final-card{text-align:center;max-width:520px;width:100%;}
+.final-card h2{margin:0 0 8px;font-size:28px;font-weight:900;color:var(--gold);}
+.final-card .totals{display:flex;gap:12px;justify-content:center;margin:16px 0;}
+@media (max-width:640px){
+  .tile{width:38px;height:48px;font-size:21px;}
+  .tile.num{width:52px;font-size:17px;}
+  .target-display{font-size:36px;padding:4px 18px;}
+  h1{font-size:24px;}
+}
 </style>
 </head>
 <body>
-  <script>
-window.GameFramework=(function(){
-function formatTime(t){const m=Math.floor(t/60).toString().padStart(2,'0'),s=(Math.floor(t)%60).toString().padStart(2,'0');return m+':'+s;}
-function createTimer(o){let st=0,el=0,iv=null;const d=o.display,lim=o.limitSeconds||0;function r(){if(!d)return;if(lim>0){const rem=Math.max(0,lim-el);d.textContent=formatTime(rem);d.style.color=rem<=10?'var(--danger)':'var(--accent)';}else{d.textContent=formatTime(el);d.style.color='var(--accent)';}}const api={start(){api.stop();st=Date.now();el=0;r();iv=setInterval(function(){el=Math.floor((Date.now()-st)/1000);r();if(o.onTick)o.onTick(el);if(lim>0&&el>=lim){api.stop();if(o.onExpire)o.onExpire();}},250);},stop(){if(iv){clearInterval(iv);iv=null;}},reset(){api.stop();el=0;r();},get elapsed(){return el;}};return api;}
-const K='gamesCreation.records.v1';
-function load(){try{const r=localStorage.getItem(K);return r?JSON.parse(r):{};}catch(e){return{};}}
-function save(r){try{localStorage.setItem(K,JSON.stringify(r));}catch(e){}}
-function recordWin(g,s,c){const a=load();const k=c?g+':'+c:g;const e=a[k]||{wins:0};const nb=e.bestSeconds==null||s<e.bestSeconds;a[k]={bestSeconds:nb?s:e.bestSeconds,wins:(e.wins||0)+1,lastPlayed:Date.now()};save(a);return{isNewBest:nb,bestSeconds:a[k].bestSeconds};}
-function getRecord(g){const a=load();const p=g+':';let b=null,w=0,lp=0;for(const k of Object.keys(a)){if(k!==g&&!k.startsWith(p))continue;const r=a[k];w+=r.wins||0;if(r.lastPlayed>lp)lp=r.lastPlayed;if(r.bestSeconds!=null&&(b==null||r.bestSeconds<b))b=r.bestSeconds;}if(w===0&&b==null)return null;return{bestSeconds:b,wins:w,lastPlayed:lp};}
-function injectBackLink(h){const a=document.createElement('a');a.className='back-link';a.href=h||'../index.html';a.textContent='\u2190 Menu';document.body.appendChild(a);}
-return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,getRecord:getRecord,injectBackLink:injectBackLink,loadRecords:load};
-})();
-GameFramework.injectBackLink();
-</script>
+<a class="back-link" href="../index.html">&larr; Hub</a>
+
+<!-- ============ LANDING ============ -->
+<section class="scr show" id="scrLanding">
   <h1>Countdown</h1>
-  <div class="sub">Press every number from N down to 1, as fast as you can</div>
-
-  <div class="settings" id="settings">
-    <label>Max number: <span class="val" id="maxVal">50</span></label>
-    <input type="range" id="maxInput" min="16" max="100" step="4" value="50">
-
-    <label>Penalty:</label>
-    <div class="pill-group" id="penaltyToggle">
-      <button class="pill active" data-penalty="lockin">Lock-in</button>
-      <button class="pill" data-penalty="5s">+5s</button>
-      <button class="pill" data-penalty="none">None</button>
+  <p class="subtitle">The legendary Channel 4 words-and-numbers quiz. Nine letters, thirty seconds, and the most famous clock on television. <em style="color:var(--gold);font-style:normal">Da da, da-da-da-da-daa&hellip;</em></p>
+  <div class="land-grid">
+    <div class="card">
+      <h3>Players</h3>
+      <div class="pillrow">
+        <div class="pill active" id="pSolo">Solo practice<small>You vs Dictionary Corner</small></div>
+        <div class="pill" id="pDuo">2 players<small>Same screen, hidden answers</small></div>
+      </div>
+      <div id="nameRow" style="display:none;flex-direction:column;gap:8px;">
+        <input type="text" id="p1Name" maxlength="12" placeholder="Player 1 name">
+        <input type="text" id="p2Name" maxlength="12" placeholder="Player 2 name">
+      </div>
     </div>
-
-    <label>Timer limit:
-      <span class="val" id="timerVal">off</span>
-    </label>
-    <div class="settings-row">
-      <input type="checkbox" id="timerEnabled">
-      <input type="range" id="timerInput" min="30" max="600" step="15" value="180" disabled>
+    <div class="card">
+      <h3>Match length</h3>
+      <div class="pillrow">
+        <div class="pill active" id="pQuick">Quick &mdash; 9 rounds<small>6 letters &middot; 2 numbers &middot; conundrum</small></div>
+        <div class="pill" id="pFull">Full &mdash; 15 rounds<small>10 letters &middot; 4 numbers &middot; conundrum</small></div>
+      </div>
+      <button id="btnStart" style="margin-top:6px">Start the clock</button>
+      <div class="kicker" id="dictStatus" style="text-align:center"></div>
     </div>
   </div>
+</section>
 
-  <div class="timer-bar">
-    <div class="meta" id="progressMeta">Not started</div>
-    <div class="timer" id="timerDisplay">00:00</div>
+<!-- ============ GAME ============ -->
+<section class="scr" id="scrGame">
+  <div class="ghead">
+    <div class="roundinfo">
+      <div class="rno" id="rNo">Round 1 of 9</div>
+      <div class="rtype" id="rType">Letters</div>
+    </div>
+    <div class="scores" id="scores"></div>
   </div>
-
-  <div class="target-display" id="targetDisplay">
-    <div class="target-label">Ready</div>
-    <div class="target-num" id="targetNum">—</div>
+  <div class="centercol">
+    <div class="tilerow" id="tileRow"></div>
+    <div id="targetWrap" style="display:none;text-align:center"><div class="target-display" id="targetBox">&mdash;</div></div>
+    <div class="clockwrap" id="clockWrap" style="display:none">
+      <svg class="cclock" viewBox="0 0 120 120" id="clockSvg">
+        <circle class="face" cx="60" cy="60" r="56"/>
+        <g id="clockTicks"></g>
+        <path class="sweep" id="clockSweep" d=""/>
+        <line class="hand" id="clockHand" x1="60" y1="60" x2="60" y2="12"/>
+        <text x="60" y="104" id="clockNum">30</text>
+      </svg>
+    </div>
+    <div class="statusline" id="statusLine"></div>
+    <div class="pickrow" id="pickRow"></div>
+    <div class="answer-grid" id="answerGrid"></div>
+    <div class="buzzrow" id="buzzRow" style="display:none"></div>
+    <div class="reveal" id="revealBox" style="display:none"></div>
+    <div class="nextrow" id="nextRow" style="display:none"></div>
   </div>
+</section>
 
-  <div class="board panel" id="board">
-    <div class="idle-msg">Press <b>Start Game</b> to begin</div>
+<!-- ============ FINAL ============ -->
+<section class="scr" id="scrFinal">
+  <div class="card final-card">
+    <h2 id="finTitle">Final scores</h2>
+    <p id="finBody" style="color:var(--text-dim)"></p>
+    <div class="totals" id="finTotals"></div>
+    <div class="nextrow" style="margin-bottom:0">
+      <button id="btnAgain">Play again</button>
+      <button class="ghost" onclick="location.href='../index.html'">Back to hub</button>
+    </div>
   </div>
-
-  <div class="controls">
-    <button id="startBtn" class="big">Start Game</button>
-    <button id="resetBtn" class="ghost hidden">Reset</button>
-  </div>
-
-  <div class="status" id="status"></div>
+</section>
 
 <script>
-  const config = {
-    max: 50,
-    penalty: 'lockin', // 'lockin' | '5s' | 'none'
-    timerLimit: 0,
-  };
+'use strict';
+/* ================================================================
+   Countdown — letters, numbers and the conundrum, real TV rules.
+   Dictionary: ../shared/words.js  (WORDS array + WORDSET set)
+   ================================================================ */
 
-  let target = 0;
-  let gameState = 'idle';
-  let timer = null;
-  let mistakes = 0;
-  let penaltyTotal = 0; // extra seconds added for 5s mode
+/* Hand-picked common 9-letter conundrum answers. The test harness
+   asserts every entry is 9 letters and present in the dictionary. */
+const CONUNDRUMS = [
+"adventure","breakfast","chocolate","education","fantastic","gentleman",
+"hurricane","important","knowledge","lightning","marmalade","nightmare",
+"orchestra","pineapple","quotation","raspberry","secretary","telephone",
+"vegetable","wonderful","xylophone","yesterday","ambulance","butterfly",
+"crocodile","dangerous","elephants","fireworks","gymnasium","hamburger",
+"influence","jellyfish","kilometre","landscape","microwave","nutrition",
+"objective","parachute","qualified","recycling","scrambled","treasurer",
+"universal","volcanoes","warehouse","afternoon","blueprint","celebrate",
+"detective","excellent","framework","gratitude","happiness","inventory",
+"libraries","machinery","newspaper","operation","paintings","quietness",
+"rectangle","sandpaper","temporary","umbrellas","vibration","waterfall",
+"youngster","zookeeper","carpenter","essential","favourite","grapevine",
+"historian","invisible","keyboards","laughable","magnitude","navigator",
+"obviously","passenger"
+];
 
-  const boardEl = document.getElementById('board');
-  const settingsEl = document.getElementById('settings');
-  const startBtn = document.getElementById('startBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const statusEl = document.getElementById('status');
-  const targetNum = document.getElementById('targetNum');
-  const targetLabel = document.querySelector('.target-label');
-  const progressMeta = document.getElementById('progressMeta');
-  const timerDisplay = document.getElementById('timerDisplay');
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
-  const maxInput = document.getElementById('maxInput');
-  const maxVal = document.getElementById('maxVal');
-  const timerInput = document.getElementById('timerInput');
-  const timerEnabled = document.getElementById('timerEnabled');
-  const timerVal = document.getElementById('timerVal');
-  const penaltyToggle = document.getElementById('penaltyToggle');
+/* ===LOGIC=== */
+/* Pure game logic — no DOM/timers. Extractable for headless tests. */
 
-  let currentPenalty = 'lockin';
-  penaltyToggle.querySelectorAll('button').forEach(b => {
-    b.addEventListener('click', () => {
-      if (gameState === 'playing') return;
-      currentPenalty = b.dataset.penalty;
-      penaltyToggle.querySelectorAll('button').forEach(x =>
-        x.classList.toggle('active', x === b));
-    });
-  });
+/* Official Countdown letter distribution. */
+const VOWEL_DIST={a:15,e:21,i:13,o:13,u:5};
+const CONSONANT_DIST={b:2,c:3,d:6,f:2,g:3,h:2,j:1,k:1,l:5,m:4,n:8,p:4,q:1,r:9,s:9,t:9,v:1,w:1,x:1,y:1,z:1};
+const MIN_VOWELS=3, MIN_CONSONANTS=4, RACK=9;
+function bagFrom(dist){ const b=[]; for(const k in dist) for(let i=0;i<dist[k];i++) b.push(k); return shuffle(b); }
 
-  function updateSettingsDisplay() {
-    maxVal.textContent = maxInput.value;
-    timerVal.textContent = timerEnabled.checked
-      ? window.GameFramework.formatTime(parseInt(timerInput.value, 10))
-      : 'off';
-  }
-  [maxInput, timerInput].forEach(el => el.addEventListener('input', updateSettingsDisplay));
-  timerEnabled.addEventListener('change', () => {
-    timerInput.disabled = !timerEnabled.checked;
-    updateSettingsDisplay();
-  });
+/* Letter-rack pick constraints: 3-5 vowels, 4-6 consonants. */
+function canPickVowel(v,c){ return v<RACK-MIN_CONSONANTS && c+(RACK-1-(v+c))>=MIN_CONSONANTS; }
+function canPickConsonant(v,c){ return c<RACK-MIN_VOWELS && v+(RACK-1-(v+c))>=MIN_VOWELS; }
 
-  function startGame() {
-    config.max = parseInt(maxInput.value, 10);
-    config.penalty = currentPenalty;
-    config.timerLimit = timerEnabled.checked ? parseInt(timerInput.value, 10) : 0;
+/* Can `word` be assembled from the rack letters? */
+function canForm(word,letters){
+  const pool={};
+  for(const l of letters) pool[l]=(pool[l]||0)+1;
+  for(const ch of word){ if(!pool[ch]) return false; pool[ch]--; }
+  return true;
+}
+function wordPoints(len){ return len===9?18:len; }
 
-    target = config.max;
-    mistakes = 0;
-    penaltyTotal = 0;
-    gameState = 'playing';
-    statusEl.textContent = '';
-
-    settingsEl.classList.add('locked');
-    startBtn.classList.add('hidden');
-    resetBtn.classList.remove('hidden');
-    resetBtn.textContent = 'Reset';
-
-    renderBoard();
-    updateTarget();
-
-    timer = window.GameFramework.createTimer({
-      display: timerDisplay,
-      limitSeconds: config.timerLimit,
-      onExpire: timeUp,
-    });
-    timer.start();
-  }
-
-  function renderBoard() {
-    boardEl.innerHTML = '';
-    boardEl.classList.remove('idle');
-    // grid dimensions: roughly square
-    const cols = Math.ceil(Math.sqrt(config.max * 1.3));
-    boardEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-
-    // shuffle an array [1..max] and render in that order
-    const nums = Array.from({ length: config.max }, (_, i) => i + 1);
-    for (let i = nums.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [nums[i], nums[j]] = [nums[j], nums[i]];
-    }
-
-    for (const n of nums) {
-      const b = document.createElement('button');
-      b.className = 'num-btn';
-      b.textContent = n;
-      b.dataset.num = n;
-      b.addEventListener('click', (e) => onNumberClick(n, b, e));
-      boardEl.appendChild(b);
+/* Validate one player's letters declaration. */
+function checkWord(raw,letters,wordset){
+  const w=(raw||'').toLowerCase().replace(/[^a-z]/g,'');
+  if(w.length<2) return {word:w,valid:false,reason:w?'too short':'no word',pts:0};
+  if(!canForm(w,letters)) return {word:w,valid:false,reason:'letters not in the selection',pts:0};
+  if(!wordset.has(w)) return {word:w,valid:false,reason:'not in the dictionary',pts:0};
+  return {word:w,valid:true,reason:'',pts:wordPoints(w.length)};
+}
+/* Head-to-head letters scoring: longest valid word scores; ties both score. */
+function scoreLetters(results){
+  const best=Math.max(0,...results.filter(r=>r.valid).map(r=>r.word.length));
+  return results.map(r=>(r.valid&&r.word.length===best)?r.pts:0);
+}
+/* Dictionary Corner: best findable words. */
+function solveLetters(letters,words){
+  let bestLen=0, found=[];
+  for(const w of words){
+    if(w.length<bestLen) continue;
+    if(canForm(w,letters)){
+      if(w.length>bestLen){ bestLen=w.length; found=[w]; }
+      else if(found.length<6&&!found.includes(w)) found.push(w);
     }
   }
+  return {len:bestLen,words:found};
+}
 
-  function onNumberClick(n, btn, evt) {
-    if (gameState !== 'playing') return;
-    if (btn.classList.contains('done')) return;
+/* ---------------- Numbers round ---------------- */
+const LARGE_SET=[25,50,75,100];
+function drawNumbers(largeCount){
+  const large=shuffle(LARGE_SET.slice()).slice(0,largeCount);
+  const small=shuffle([1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10]).slice(0,6-largeCount);
+  return large.concat(small);
+}
+function drawTarget(){ return 101+Math.floor(Math.random()*899); }
 
-    if (n === target) {
-      btn.classList.add('done');
-      target--;
-      if (target === 0) { win(); return; }
-      updateTarget();
-    } else {
-      mistakes++;
-      btn.classList.add('wrong');
-      setTimeout(() => btn.classList.remove('wrong'), 400);
+/* Expression parser/evaluator. Official rules enforced: only the six tiles
+   (each at most once), and every intermediate result must be a positive
+   integer (exact division, no negative or zero subtotals).
+   Returns {val, used} or {err}. */
+function evalNumbersExpr(src,tiles){
+  const toks=[];
+  const s=String(src||'');
+  for(let i=0;i<s.length;){
+    const ch=s[i];
+    if(/\s/.test(ch)){ i++; continue; }
+    if(/[0-9]/.test(ch)){ let j=i; while(j<s.length&&/[0-9]/.test(s[j]))j++; toks.push({t:'n',v:parseInt(s.slice(i,j),10)}); i=j; continue; }
+    if('+-*/()'.includes(ch)){ toks.push({t:ch}); i++; continue; }
+    if(ch==='x'||ch==='X'||ch==='×'){ toks.push({t:'*'}); i++; continue; }
+    if(ch==='÷'){ toks.push({t:'/'}); i++; continue; }
+    return {err:'unexpected character “'+ch+'”'};
+  }
+  if(!toks.length) return {err:'no expression'};
+  let pos=0;
+  const used=[];
+  function peek(){ return toks[pos]; }
+  function expr(){
+    let a=term();
+    while(peek()&&(peek().t==='+'||peek().t==='-')){
+      const op=toks[pos++].t, b=term();
+      a = op==='+' ? a+b : a-b;
+      if(a<=0||!Number.isInteger(a)) throw {msg:'every step must stay a positive whole number'};
+    }
+    return a;
+  }
+  function term(){
+    let a=factor();
+    while(peek()&&(peek().t==='*'||peek().t==='/')){
+      const op=toks[pos++].t, b=factor();
+      if(op==='/'){ if(b===0||a%b!==0) throw {msg:'division must be exact'}; a=a/b; }
+      else a=a*b;
+      if(a<=0||!Number.isInteger(a)) throw {msg:'every step must stay a positive whole number'};
+    }
+    return a;
+  }
+  function factor(){
+    const t=peek();
+    if(!t) throw {msg:'incomplete expression'};
+    if(t.t==='n'){ pos++; used.push(t.v); return t.v; }
+    if(t.t==='('){ pos++; const v=expr(); if(!peek()||peek().t!==')') throw {msg:'missing closing bracket'}; pos++; return v; }
+    throw {msg:'unexpected “'+t.t+'”'};
+  }
+  let val;
+  try{ val=expr(); }catch(e){ return {err:e.msg||'invalid expression'}; }
+  if(pos<toks.length) return {err:'unexpected “'+(toks[pos].t==='n'?toks[pos].v:toks[pos].t)+'”'};
+  const pool=tiles.slice();
+  for(const n of used){
+    const ix=pool.indexOf(n);
+    if(ix===-1) return {err:'number '+n+' is not available'+(tiles.includes(n)?' that many times':'')};
+    pool.splice(ix,1);
+  }
+  return {val,used};
+}
+function numbersPoints(diff){ return diff===0?10:diff<=5?7:diff<=10?5:0; }
+/* Head-to-head numbers scoring: closest within 10 scores; ties both score. */
+function scoreNumbers(diffs){
+  const eligible=diffs.filter(d=>d!==null&&d<=10);
+  if(!eligible.length) return diffs.map(()=>0);
+  const best=Math.min(...eligible);
+  return diffs.map(d=>(d!==null&&d===best)?numbersPoints(d):0);
+}
 
-      if (config.penalty === 'lockin') {
-        lose('Lock-in! Wrong number clicked.');
-      } else if (config.penalty === '5s') {
-        penaltyTotal += 5;
-        showPenaltyFlash(btn, '+5s');
+/* Solver: best reachable value from the six tiles. Exact-stop search. */
+function solveNumbers(tiles,target){
+  let best={diff:Infinity,val:null,expr:''};
+  function consider(v,e){
+    const d=Math.abs(v-target);
+    if(d<best.diff){ best={diff:d,val:v,expr:e}; }
+  }
+  function rec(items){
+    if(best.diff===0) return;
+    for(let i=0;i<items.length;i++){
+      for(let j=0;j<items.length;j++){
+        if(i===j) continue;
+        const a=items[i], b=items[j];
+        if(a.v<b.v) continue;                       // a >= b: covers +,* symmetry and valid -,/
+        const rest=[];
+        for(let k=0;k<items.length;k++) if(k!==i&&k!==j) rest.push(items[k]);
+        const cands=[];
+        cands.push({v:a.v+b.v,e:'('+a.e+'+'+b.e+')'});
+        if(b.v>1) cands.push({v:a.v*b.v,e:'('+a.e+'*'+b.e+')'});
+        if(a.v-b.v>0) cands.push({v:a.v-b.v,e:'('+a.e+'-'+b.e+')'});
+        if(b.v>1&&a.v%b.v===0) cands.push({v:a.v/b.v,e:'('+a.e+'/'+b.e+')'});
+        for(const c of cands){
+          consider(c.v,c.e);
+          if(best.diff===0) return;
+          if(rest.length){ rec(rest.concat([c])); if(best.diff===0) return; }
+        }
       }
-      // 'none' — no penalty
     }
   }
+  const items=tiles.map(t=>({v:t,e:String(t)}));
+  for(const it of items) consider(it.v,it.e);
+  if(best.diff!==0) rec(items);
+  best.expr=best.expr.replace(/^\((.*)\)$/,'$1');
+  return best;
+}
 
-  function showPenaltyFlash(btn, text) {
-    const rect = btn.getBoundingClientRect();
-    const el = document.createElement('div');
-    el.className = 'penalty-flash';
-    el.textContent = text;
-    el.style.left = (rect.left + rect.width / 2) + 'px';
-    el.style.top = rect.top + 'px';
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 800);
+/* ---------------- Conundrum ---------------- */
+function scrambleWord(w){
+  let sc=w;
+  for(let t=0;t<50&&sc===w;t++) sc=shuffle(w.split('')).join('');
+  return sc;
+}
+
+/* ---------------- Match formats ---------------- */
+const FORMATS={
+  quick:['L','L','L','N','L','L','L','N','C'],
+  full:['L','L','N','L','L','N','L','L','N','L','L','N','L','L','C'],
+};
+/* ===ENDLOGIC=== */
+
+/* ================================================================
+   Audio
+   ================================================================ */
+const FX={
+  ctx:null,
+  init(){ if(!this.ctx){ try{ this.ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume(); },
+  tone(f,t0,dur,type,vol){
+    if(!this.ctx) return;
+    const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+    o.type=type||'sine'; o.frequency.value=f; o.connect(g); g.connect(this.ctx.destination);
+    const t=this.ctx.currentTime+t0;
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||0.13,t+0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.start(t); o.stop(t+dur+0.05);
+  },
+  tick(){ this.init(); this.tone(1100,0,0.03,'square',0.04); },
+  pop(){ this.init(); this.tone(620,0,0.07,'triangle',0.1); },
+  lock(){ this.init(); this.tone(520,0,0.09,'triangle',0.12); },
+  good(){ this.init(); this.tone(660,0,0.12,'triangle',0.13); this.tone(880,0.1,0.25,'triangle',0.13); },
+  bad(){ this.init(); this.tone(220,0,0.18,'square',0.1); this.tone(160,0.16,0.3,'square',0.1); },
+  horn(){ this.init(); this.tone(311,0,0.3,'sawtooth',0.14); this.tone(294,0.3,0.3,'sawtooth',0.14); this.tone(262,0.6,0.55,'sawtooth',0.16); },
+  buzz(){ this.init(); this.tone(180,0,0.4,'sawtooth',0.18); },
+  fanfare(){ this.init(); [523,659,784,1047,1319].forEach((f,n)=>this.tone(f,n*0.09,0.3,'triangle',0.14)); },
+};
+document.body.addEventListener('click',()=>FX.init(),{once:true});
+
+/* ================================================================
+   Match + round state, UI
+   ================================================================ */
+const $=id=>document.getElementById(id);
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showScr(id){ document.querySelectorAll('section.scr').forEach(s=>s.classList.remove('show')); $(id).classList.add('show'); }
+
+let M=null;   // match: {duo,names,format,round,scores,maxPossible,conPool}
+let R=null;   // current round
+let clockT=null, conAnswerT=null;
+
+function setStatus(txt,kind){ const el=$('statusLine'); el.textContent=txt||''; el.className='statusline'+(kind?' '+kind:''); }
+function clearRoundUI(){
+  $('pickRow').innerHTML=''; $('answerGrid').innerHTML='';
+  $('revealBox').style.display='none'; $('revealBox').innerHTML='';
+  $('nextRow').style.display='none'; $('nextRow').innerHTML='';
+  $('buzzRow').style.display='none'; $('buzzRow').innerHTML='';
+  $('targetWrap').style.display='none'; $('clockWrap').style.display='none';
+  setStatus('');
+  if(clockT){ clearInterval(clockT); clockT=null; }
+  if(conAnswerT){ clearInterval(conAnswerT); conAnswerT=null; }
+}
+
+/* ---------- scoreboard ---------- */
+function renderScores(){
+  const el=$('scores'); el.innerHTML='';
+  const lead=M.duo?Math.max(...M.scores):-1;
+  M.names.forEach((n,i)=>{
+    const d=document.createElement('div');
+    d.className='scorebox'+(M.duo&&M.scores[i]===lead&&lead>0?' lead':'');
+    d.innerHTML='<div class="nm">'+esc(n)+'</div><div class="pt">'+M.scores[i]+'</div>'
+      +(!M.duo?'<div class="mx">best possible: '+M.maxPossible+'</div>':'');
+    el.appendChild(d);
+  });
+}
+
+/* ---------- tiles ---------- */
+function renderTiles(arr,total,numeric){
+  const el=$('tileRow'); el.innerHTML='';
+  for(let i=0;i<total;i++){
+    const t=document.createElement('div');
+    const v=arr[i];
+    t.className='tile'+(numeric?' num':'')+(v===undefined?' empty':' pop');
+    t.textContent=v===undefined?'':v;
+    el.appendChild(t);
   }
+}
 
-  function updateTarget() {
-    targetLabel.textContent = 'Click';
-    targetNum.textContent = target;
-    targetNum.classList.remove('done');
-    progressMeta.textContent = `${config.max - target} / ${config.max} · Mistakes: ${mistakes}`;
+/* ---------- clock ---------- */
+function buildClockTicks(){
+  const g=$('clockTicks'); let out='';
+  for(let i=0;i<30;i++){
+    const a=(i/30)*Math.PI*2-Math.PI/2;
+    const r1=50,r2=i%5===0?44:47;
+    out+='<line class="tickmark" x1="'+(60+Math.cos(a)*r1).toFixed(1)+'" y1="'+(60+Math.sin(a)*r1).toFixed(1)
+      +'" x2="'+(60+Math.cos(a)*r2).toFixed(1)+'" y2="'+(60+Math.sin(a)*r2).toFixed(1)+'"/>';
   }
+  g.innerHTML=out;
+}
+function setClock(sec){
+  $('clockNum').textContent=Math.max(0,Math.ceil(sec));
+  const frac=Math.max(0,Math.min(1,(30-sec)/30));
+  const ang=frac*Math.PI*2-Math.PI/2;
+  $('clockHand').setAttribute('x2',(60+Math.cos(ang)*46).toFixed(1));
+  $('clockHand').setAttribute('y2',(60+Math.sin(ang)*46).toFixed(1));
+  const large=frac>0.5?1:0;
+  $('clockSweep').setAttribute('d', frac<=0
+    ? '' : 'M60,60 L60,14 A46,46 0 '+large+',1 '+(60+Math.cos(ang)*46).toFixed(1)+','+(60+Math.sin(ang)*46).toFixed(1)+' Z');
+}
+function startClock(onEnd){
+  $('clockWrap').style.display='flex';
+  R.timeLeft=30; setClock(30);
+  clockT=setInterval(()=>{
+    if(R.paused) return;
+    R.timeLeft-=1; setClock(R.timeLeft);
+    if(R.timeLeft<=0){ clearInterval(clockT); clockT=null; FX.horn(); onEnd(); }
+    else FX.tick();
+  },1000);
+}
 
-  function win() {
-    gameState = 'over';
-    timer.stop();
-    const finalTime = timer.elapsed + penaltyTotal;
-    const configKey = `max${config.max}-${config.penalty}`;
-    const result = window.GameFramework.recordWin('countdown', finalTime, configKey);
-    const newBest = result.isNewBest ? '<span class="new-best">NEW BEST</span>' : '';
-    const penaltyText = penaltyTotal > 0 ? ` (incl. +${penaltyTotal}s penalty)` : '';
-    statusEl.innerHTML = `Cleared in ${window.GameFramework.formatTime(finalTime)}${penaltyText} · ${mistakes} mistake${mistakes === 1 ? '' : 's'} ${newBest}`;
-    targetNum.textContent = '✓';
-    targetNum.classList.add('done');
-    targetLabel.textContent = 'Done';
-    progressMeta.textContent = `${config.max} / ${config.max} · Mistakes: ${mistakes}`;
-    showPostGameControls();
+/* ---------- match flow ---------- */
+function startMatch(duo,names,formatKey){
+  M={duo,names,format:FORMATS[formatKey].slice(),round:-1,scores:duo?[0,0]:[0],
+     maxPossible:0,conPool:shuffle(CONUNDRUMS.slice())};
+  showScr('scrGame');
+  nextRound();
+}
+function nextRound(){
+  M.round++;
+  if(M.round>=M.format.length){ finalScreen(); return; }
+  clearRoundUI();
+  renderScores();
+  const type=M.format[M.round];
+  const letterRoundsSoFar=M.format.slice(0,M.round+1).filter(t=>t!=='C').length;
+  $('rNo').textContent='Round '+(M.round+1)+' of '+M.format.length;
+  $('rType').textContent=type==='L'?'Letters':type==='N'?'Numbers':'Conundrum';
+  R={type,picker:M.duo?(letterRoundsSoFar+1)%2:0,paused:false};
+  if(type==='L') setupLetters();
+  else if(type==='N') setupNumbers();
+  else setupConundrum();
+}
+function pickerName(){ return M.names[R.picker]; }
+
+/* ================= LETTERS ================= */
+function setupLetters(){
+  R.letters=[]; R.vBag=bagFrom(VOWEL_DIST); R.cBag=bagFrom(CONSONANT_DIST);
+  R.v=0; R.c=0;
+  renderTiles([],RACK,false);
+  setStatus((M.duo?pickerName()+' picks — ':'')+'vowel or consonant?');
+  const row=$('pickRow'); row.innerHTML='';
+  const bV=document.createElement('button'); bV.textContent='Vowel';
+  const bC=document.createElement('button'); bC.className='ghost'; bC.textContent='Consonant';
+  const bA=document.createElement('button'); bA.className='ghost'; bA.textContent='Auto-fill';
+  bV.onclick=()=>pickLetter(true); bC.onclick=()=>pickLetter(false);
+  bA.onclick=()=>{ while(R.letters.length<RACK){
+    const v=canPickVowel(R.v,R.c), c=canPickConsonant(R.v,R.c);
+    pickLetter(v&&c?Math.random()<0.42:v); } };
+  row.appendChild(bV); row.appendChild(bC); row.appendChild(bA);
+  R.btnV=bV; R.btnC=bC;
+  updateLetterButtons();
+}
+function updateLetterButtons(){
+  R.btnV.disabled=!canPickVowel(R.v,R.c);
+  R.btnC.disabled=!canPickConsonant(R.v,R.c);
+}
+function pickLetter(vowel){
+  if(R.letters.length>=RACK) return;
+  if(vowel&&!canPickVowel(R.v,R.c)) return;
+  if(!vowel&&!canPickConsonant(R.v,R.c)) return;
+  R.letters.push(vowel?R.vBag.pop():R.cBag.pop());
+  vowel?R.v++:R.c++;
+  FX.pop();
+  renderTiles(R.letters,RACK,false);
+  if(R.letters.length>=RACK){
+    $('pickRow').innerHTML='';
+    R.solution=solveLetters(R.letters,WORDS);
+    beginAnswers('Type your best word — it stays hidden until the reveal.',revealLetters);
+  } else updateLetterButtons();
+}
+
+/* ================= NUMBERS ================= */
+function setupNumbers(){
+  renderTiles([],6,true);
+  $('targetWrap').style.display='block'; $('targetBox').textContent='—';
+  setStatus((M.duo?pickerName()+' picks — ':'')+'how many big numbers? (25, 50, 75, 100)');
+  const row=$('pickRow'); row.innerHTML='';
+  for(let n=0;n<=4;n++){
+    const b=document.createElement('button');
+    b.className=n===1?'':'ghost'; b.textContent=n===0?'None big':n+' big';
+    b.onclick=()=>{
+      R.tiles=drawNumbers(n);
+      renderTiles(R.tiles,6,true);
+      row.innerHTML=''; FX.pop();
+      spinTarget();
+    };
+    row.appendChild(b);
   }
+}
+function spinTarget(){
+  setStatus('And the target is…');
+  let spins=0;
+  const t=setInterval(()=>{
+    $('targetBox').textContent=drawTarget();
+    if(++spins>=14){
+      clearInterval(t);
+      R.target=drawTarget();
+      $('targetBox').textContent=R.target;
+      R.solution=solveNumbers(R.tiles,R.target);
+      beginAnswers('Type your working, e.g. (100+6)*7 — hidden until the reveal.',revealNumbers);
+    }
+  },90);
+}
 
-  function lose(reason) {
-    gameState = 'over';
-    timer.stop();
-    statusEl.textContent = `${reason} Got to ${config.max - target} / ${config.max}.`;
-    targetLabel.textContent = 'Locked';
-    showPostGameControls();
+/* ============ shared answer phase (letters + numbers) ============ */
+function beginAnswers(hint,onReveal){
+  R.entries=M.names.map(()=>({text:'',locked:false}));
+  const grid=$('answerGrid'); grid.innerHTML='';
+  M.names.forEach((n,i)=>{
+    const box=document.createElement('div'); box.className='answer-box';
+    box.innerHTML='<h5>'+esc(n)+'</h5>';
+    const row=document.createElement('div'); row.className='inrow';
+    const inp=document.createElement('input');
+    inp.type=M.duo?'password':'text'; inp.autocomplete='off'; inp.spellcheck=false;
+    inp.placeholder=M.duo?'answer hidden…':'your answer…';
+    const lock=document.createElement('button'); lock.textContent='Lock';
+    const doLock=()=>{
+      if(R.entries[i].locked) return;
+      R.entries[i]={text:inp.value,locked:true};
+      inp.disabled=true; lock.disabled=true; box.classList.add('locked');
+      FX.lock();
+      if(R.entries.every(e=>e.locked)&&clockT){ clearInterval(clockT); clockT=null; onReveal(); }
+    };
+    lock.onclick=doLock;
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') doLock(); });
+    row.appendChild(inp); row.appendChild(lock);
+    box.appendChild(row);
+    const h=document.createElement('div'); h.className='hint'; h.textContent=hint;
+    box.appendChild(h);
+    grid.appendChild(box);
+    R.entries[i].inp=inp;
+  });
+  setStatus('30 seconds on the clock…','gold');
+  startClock(()=>{
+    R.entries.forEach(e=>{ if(!e.locked){ e.text=e.inp.value; e.locked=true; } });
+    onReveal();
+  });
+}
+
+/* ---------- reveals ---------- */
+function revealRow(who,what,cls,pts,note){
+  return '<div class="rv-row"><span class="who">'+esc(who)+'</span>'
+    +'<span class="what '+cls+'">'+esc(what||'—')+(note?' <span style="font-size:11.5px;color:var(--text-faint)">('+esc(note)+')</span>':'')+'</span>'
+    +'<span class="pts">'+(pts>0?'+'+pts:'0')+'</span></div>';
+}
+function showReveal(html,nextLabel){
+  $('answerGrid').innerHTML='';
+  const rb=$('revealBox'); rb.innerHTML=html; rb.style.display='block';
+  const nr=$('nextRow'); nr.style.display='flex'; nr.innerHTML='';
+  const b=document.createElement('button');
+  b.textContent=nextLabel||(M.round+1>=M.format.length?'Final scores':'Next round');
+  b.onclick=nextRound;
+  nr.appendChild(b);
+  renderScores();
+}
+function revealLetters(){
+  const results=R.entries.map(e=>checkWord(e.text,R.letters,WORDSET));
+  let html='';
+  if(M.duo){
+    const pts=scoreLetters(results);
+    results.forEach((r,i)=>{
+      M.scores[i]+=pts[i];
+      html+=revealRow(M.names[i],r.word||'—',r.valid?'good':'bad',pts[i],r.valid?r.word.length+' letters':r.reason);
+    });
+    if(pts[0]>0||pts[1]>0) FX.good(); else FX.bad();
+  } else {
+    const r=results[0], pts=r.valid?r.pts:0;
+    M.scores[0]+=pts;
+    M.maxPossible+=wordPoints(R.solution.len);
+    html+=revealRow(M.names[0],r.word||'—',r.valid?'good':'bad',pts,r.valid?r.word.length+' letters':r.reason);
+    pts>0?FX.good():FX.bad();
   }
-
-  function timeUp() {
-    if (gameState !== 'playing') return;
-    lose("Time's up!");
+  html+='<div class="rv-row"><span class="bestline">Dictionary Corner found <strong>'
+    +esc((R.solution.words[0]||'—').toUpperCase())+'</strong> ('+R.solution.len+' letters'
+    +(R.solution.words.length>1?'; also '+R.solution.words.slice(1,4).map(w=>esc(w.toUpperCase())).join(', '):'')
+    +') — worth '+wordPoints(R.solution.len)+'</span></div>';
+  setStatus('');
+  showReveal(html);
+}
+function revealNumbers(){
+  const evals=R.entries.map(e=>({raw:e.text.trim(),res:e.text.trim()?evalNumbersExpr(e.text,R.tiles):{err:'no answer'}}));
+  const diffs=evals.map(ev=>ev.res.err!==undefined?null:Math.abs(ev.res.val-R.target));
+  let html='';
+  if(M.duo){
+    const pts=scoreNumbers(diffs);
+    evals.forEach((ev,i)=>{
+      M.scores[i]+=pts[i];
+      const ok=ev.res.err===undefined;
+      html+=revealRow(M.names[i],ev.raw||'—',ok&&diffs[i]<=10?'good':'bad',pts[i],
+        ok?('= '+ev.res.val+(diffs[i]===0?' — spot on!':', '+diffs[i]+' away')):ev.res.err);
+    });
+    (pts[0]>0||pts[1]>0)?FX.good():FX.bad();
+  } else {
+    const ev=evals[0], ok=ev.res.err===undefined;
+    const pts=ok&&diffs[0]<=10?numbersPoints(diffs[0]):0;
+    M.scores[0]+=pts;
+    M.maxPossible+=numbersPoints(R.solution.diff);
+    html+=revealRow(M.names[0],ev.raw||'—',ok&&diffs[0]<=10?'good':'bad',pts,
+      ok?('= '+ev.res.val+(diffs[0]===0?' — spot on!':', '+diffs[0]+' away')):ev.res.err);
+    pts>0?FX.good():FX.bad();
   }
+  html+='<div class="rv-row"><span class="bestline">Best possible: <strong>'+esc(R.solution.expr)
+    +' = '+R.solution.val+'</strong>'+(R.solution.diff===0?' — exactly '+R.target:' ('+R.solution.diff+' away)')+'</span></div>';
+  setStatus('');
+  showReveal(html);
+}
 
-  function showPostGameControls() {
-    startBtn.classList.remove('hidden');
-    startBtn.textContent = 'Play Again';
-    resetBtn.textContent = 'Change Settings';
+/* ================= CONUNDRUM ================= */
+function setupConundrum(){
+  R.answer=M.conPool.pop();
+  R.scramble=scrambleWord(R.answer);
+  R.lockedOut=M.names.map(()=>false);
+  renderTiles(R.scramble.split(''),9,false);
+  setStatus('Tonight’s Countdown Conundrum — fingers on buzzers!','gold');
+  if(M.duo){
+    const row=$('buzzRow'); row.style.display='flex'; row.innerHTML='';
+    M.names.forEach((n,i)=>{
+      const b=document.createElement('button'); b.className='buzzbtn';
+      b.innerHTML=esc(n)+'<br><small style="font-weight:600;font-size:11px">key: '+(i===0?'Q':'P')+'</small>';
+      b.onclick=()=>conBuzz(i);
+      row.appendChild(b);
+    });
+    R.buzzBtns=[...row.children];
+    window.addEventListener('keydown',conKeyBuzz);
+  } else {
+    const grid=$('answerGrid');
+    const box=document.createElement('div'); box.className='answer-box';
+    box.innerHTML='<h5>Solve it</h5>';
+    const row=document.createElement('div'); row.className='inrow';
+    const inp=document.createElement('input'); inp.type='text'; inp.autocomplete='off'; inp.spellcheck=false; inp.placeholder='nine letters…';
+    const go=document.createElement('button'); go.textContent='Try';
+    const attempt=()=>{
+      const guess=(inp.value||'').toLowerCase().replace(/[^a-z]/g,'');
+      if(!guess) return;
+      if(conCorrect(guess)){ conWin(0,guess); }
+      else { FX.bad(); setStatus('Not it — keep trying!','bad'); inp.select(); }
+    };
+    go.onclick=attempt;
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') attempt(); });
+    row.appendChild(inp); row.appendChild(go); box.appendChild(row); grid.appendChild(box);
+    setTimeout(()=>inp.focus(),50);
   }
+  startClock(()=>conReveal(null));
+}
+function conCorrect(guess){
+  return guess.length===9&&canForm(guess,R.scramble.split(''))&&WORDSET.has(guess);
+}
+function conKeyBuzz(e){
+  if(!R||R.type!=='C'||R.buzzed!==undefined) return;
+  if(e.key==='q'||e.key==='Q') conBuzz(0);
+  if(e.key==='p'||e.key==='P') conBuzz(1);
+}
+function conBuzz(i){
+  if(R.lockedOut[i]||R.buzzed!==undefined||R.timeLeft<=0) return;
+  R.buzzed=i; R.paused=true;
+  FX.buzz();
+  R.buzzBtns.forEach(b=>b.disabled=true);
+  setStatus(M.names[i]+' buzzed — answer now!','gold');
+  const grid=$('answerGrid'); grid.innerHTML='';
+  const box=document.createElement('div'); box.className='answer-box';
+  box.innerHTML='<h5>'+esc(M.names[i])+' — 10 seconds</h5>';
+  const row=document.createElement('div'); row.className='inrow';
+  const inp=document.createElement('input'); inp.type='text'; inp.autocomplete='off'; inp.spellcheck=false;
+  const go=document.createElement('button'); go.textContent='Answer';
+  row.appendChild(inp); row.appendChild(go); box.appendChild(row); grid.appendChild(box);
+  setTimeout(()=>inp.focus(),50);
+  let left=10;
+  const h=document.createElement('div'); h.className='hint'; h.textContent='10s…'; box.appendChild(h);
+  conAnswerT=setInterval(()=>{ left--; h.textContent=left+'s…'; if(left<=0) judge(''); },1000);
+  const judge=(guess)=>{
+    clearInterval(conAnswerT); conAnswerT=null;
+    if(conCorrect(guess)){ conWin(i,guess); return; }
+    FX.bad();
+    grid.innerHTML='';
+    R.lockedOut[i]=true; R.buzzed=undefined; R.paused=false;
+    if(R.lockedOut.every(x=>x)){ conReveal(null); return; }
+    R.buzzBtns.forEach((b,bi)=>b.disabled=R.lockedOut[bi]);
+    setStatus('Wrong — '+M.names[i]+' is locked out. Clock runs on…','bad');
+  };
+  go.onclick=()=>judge((inp.value||'').toLowerCase().replace(/[^a-z]/g,''));
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') go.onclick(); });
+}
+function conWin(i,guess){
+  if(clockT){ clearInterval(clockT); clockT=null; }
+  if(conAnswerT){ clearInterval(conAnswerT); conAnswerT=null; }
+  M.scores[i]+=10;
+  if(!M.duo) M.maxPossible+=10;
+  FX.fanfare();
+  renderTiles(guess.split(''),9,false);
+  conReveal(i);
+}
+function conReveal(winner){
+  if(M.duo) window.removeEventListener('keydown',conKeyBuzz);
+  if(!M.duo&&winner===null) M.maxPossible+=10;
+  if(clockT){ clearInterval(clockT); clockT=null; }
+  $('buzzRow').style.display='none'; $('answerGrid').innerHTML='';
+  let html='';
+  if(winner!==null) html+=revealRow(M.names[winner],R.answer.toUpperCase(),'good',10,'');
+  html+='<div class="rv-row"><span class="bestline">The conundrum was <strong>'+esc(R.answer.toUpperCase())+'</strong></span></div>';
+  setStatus(winner!==null?'Solved!':'Time’s up!',winner!==null?'good':'bad');
+  showReveal(html,'Final scores');
+}
 
-  function resetToIdle() {
-    if (timer) timer.reset();
-    gameState = 'idle';
-    target = 0;
-    mistakes = 0;
-    penaltyTotal = 0;
-
-    settingsEl.classList.remove('locked');
-    startBtn.classList.remove('hidden');
-    startBtn.textContent = 'Start Game';
-    resetBtn.classList.add('hidden');
-
-    boardEl.innerHTML = '<div class="idle-msg">Press <b>Start Game</b> to begin</div>';
-    boardEl.classList.add('idle');
-    boardEl.style.gridTemplateColumns = '';
-    targetLabel.textContent = 'Ready';
-    targetNum.textContent = '—';
-    targetNum.classList.remove('done');
-    progressMeta.textContent = 'Not started';
-    timerDisplay.textContent = '00:00';
-    statusEl.textContent = '';
+/* ================= FINAL ================= */
+function finalScreen(){
+  showScr('scrFinal');
+  const t=$('finTotals'); t.innerHTML='';
+  M.names.forEach((n,i)=>{
+    const d=document.createElement('div'); d.className='scorebox';
+    d.innerHTML='<div class="nm">'+esc(n)+'</div><div class="pt">'+M.scores[i]+'</div>'
+      +(!M.duo?'<div class="mx">best possible: '+M.maxPossible+'</div>':'');
+    t.appendChild(d);
+  });
+  if(M.duo){
+    const w=M.scores[0]===M.scores[1]?null:M.scores[0]>M.scores[1]?0:1;
+    $('finTitle').textContent=w===null?'It’s a tie!':M.names[w]+' wins!';
+    $('finBody').textContent=w===null?'A crucial conundrum couldn’t separate you.':'Vorderman would be proud.';
+  } else {
+    const pc=M.maxPossible?Math.round(100*M.scores[0]/M.maxPossible):0;
+    $('finTitle').textContent='You scored '+M.scores[0];
+    $('finBody').textContent='That’s '+pc+'% of the best possible '+M.maxPossible+' — '
+      +(pc>=80?'octochamp material!':pc>=55?'a very tidy game.':pc>=30?'a solid effort — the clock is cruel.':'Susie Dent believes in you. Try again!');
   }
+  FX.fanfare();
+}
 
-  startBtn.addEventListener('click', startGame);
-  resetBtn.addEventListener('click', resetToIdle);
+/* ================= landing wiring ================= */
+let optDuo=false, optFormat='quick';
+function pillPair(a,b,setter){
+  $(a).onclick=()=>{ $(a).classList.add('active'); $(b).classList.remove('active'); setter(true); };
+  $(b).onclick=()=>{ $(b).classList.add('active'); $(a).classList.remove('active'); setter(false); };
+}
+pillPair('pSolo','pDuo',isSolo=>{ optDuo=!isSolo; $('nameRow').style.display=optDuo?'flex':'none'; });
+pillPair('pQuick','pFull',isQuick=>{ optFormat=isQuick?'quick':'full'; });
+$('btnStart').onclick=()=>{
+  FX.init();
+  const names=optDuo
+    ?[($('p1Name').value.trim()||'Player 1'),($('p2Name').value.trim()||'Player 2')]
+    :['You'];
+  startMatch(optDuo,names,optFormat);
+};
+$('btnAgain').onclick=()=>showScr('scrLanding');
 
-  updateSettingsDisplay();
+/* boot */
+buildClockTicks();
+if(typeof WORDS==='undefined'){
+  $('dictStatus').textContent='⚠ dictionary failed to load';
+  $('btnStart').disabled=true;
+} else {
+  $('dictStatus').textContent=WORDS.length.toLocaleString('en-GB')+' words loaded';
+}
 </script>
 </body>
 </html>

@@ -39,7 +39,8 @@ games are faithful clones of TV game shows, playable online with workmates (team
 |---|---|
 | **blockbusters** | ✅ Rebuilt as **Blockbusters Live** — online multiplayer (PeerJS), 1983–93 ITV rules. Deployed & live. |
 | **the-wall** | ✅ Rebuilt 2026-06-12 as **The Wall Live** — show-accurate UK rules, solo practice + online pair co-op (PeerJS, prefix `twhx26-`). Logic verified headlessly (3000 sim games + deterministic edge tests). Deployed. **Needs a 2-device smoke test.** Spec kept below for reference. |
-| **countdown** | ⚠️ Misnamed: it's a "click 1–100 in order" game, not the TV show. **Rebuild commissioned — spec below. Not started.** (Note: `number-rush/` folder already exists — old click game copied & retitled; hub entry for it still missing.) |
+| **countdown** | ✅ Rebuilt 2026-06-12 as the real TV Countdown — letters/numbers/conundrum, solo + same-screen 2P (hidden inputs, simultaneous reveal). Logic verified headlessly (see below). Deployed. **Needs an in-browser smoke test.** |
+| **number-rush** | ✅ The old click-1-to-100 game, kept under its own id. Hub ILLO + GAMES entry added 2026-06-12 (futuristic zone; countdown moved to bonus zone with the other TV games). |
 | mastermind, planet-order, stop-clock, symbol-wheels, number-tower, numeral-grid, tube-spectrum, synonym-dominoes, word-chain, pipework, block-grid | ✅ Working. Bug-fix + content pass verified (`node --check` all script blocks + synonym-dominoes dup check) and **pushed 2026-06-12**. |
 
 ### Bug/content pass (verified + pushed 2026-06-12)
@@ -106,17 +107,23 @@ Researched rules (Wikipedia UK + UKGameshows):
 - Needs an MCQ trivia bank (~80+ questions: 2-choice, 3-choice, 4-choice pools).
 - Hub: update the-wall GAMES description after rebuild (do not change id/illo).
 
-## COMMISSIONED: Countdown rebuild (decisions made)
+## Countdown — how it works (built 2026-06-12, reference)
 
-- Build the REAL TV Countdown in `countdown/`: letters rounds (9 letters, vowel/consonant picks with
-  weighted distribution, 30s clock, dictionary validation, score = word length, 18 for nine-letter),
-  numbers rounds (6 tiles large/small pick, target 101–999, 30s, expression input validated by
-  arithmetic, 10/7/5 points for exact/≤5/≤10 away, include a solver to show best possible),
-  and the Conundrum (9-letter anagram, 30s, buzz + type).
-- Modes: solo practice + same-screen 2-player (both type hidden answers, simultaneous reveal).
-- Dictionary: ship a word list in the repo (e.g. `shared/words.js`) — needed for validation + solver.
-- **Rename the existing click-1-to-100 game to "Number Rush"** (`number-rush/` folder) and KEEP it:
-  new hub ILLO + GAMES entry for number-rush; countdown entry stays pointing at the new TV game.
+- `countdown/index.html` + `shared/words.js` (156,674 words, 2–9 letters, SCOWL via `word-list` npm
+  pkg, UK+US spellings; exposes `WORDS` array + `WORDSET` set; loaded via `<script src>` — the one
+  deliberate exception to the single-file convention).
+- Formats: Quick 9 rounds (6L/2N/C) and Full 15 (10L/4N/C). Modes: solo (score vs running
+  "best possible") and same-screen 2P (password inputs, lock buttons, simultaneous reveal;
+  pick control alternates; conundrum buzzers on Q / P keys, buzz pauses clock, 10s to answer,
+  wrong = locked out and clock resumes).
+- Official rules: letter bags A15 E21 I13 O13 U5 / B2 C3 D6 F2 G3 H2 J1 K1 L5 M4 N8 P4 Q1 R9 S9 T9
+  V1 W1 X1 Y1 Z1, racks forced to 3–5 vowels; 9-letter word = 18 pts, longest-only scoring with
+  ties shared; numbers 10/7/5 for exact/≤5/≤10 (closest only, ties shared), expression parser
+  enforces tiles-once + every intermediate a positive integer + exact division; conundrum accepts
+  any valid 9-letter anagram from the dictionary.
+- Pure logic between `/* ===LOGIC=== */` markers. Test harness verified: all 80 conundrums valid,
+  2000 rack sims, parser accept/reject suite, solver expressions re-parse to their claimed values
+  over 300 random boards (280/300 exact), scoring + format shapes.
 
 ## Misc / pending odds & ends
 
@@ -129,5 +136,5 @@ Researched rules (Wikipedia UK + UKGameshows):
 
 ## Suggested next-session order
 
-1. Rebuild Countdown per spec above; add the missing number-rush hub entry (ILLO + GAMES).
-2. Update hub entries, deploy, smoke-test Blockbusters + The Wall on the live site (2 devices).
+1. Smoke-test on the live site: Countdown (in-browser, solo + 2P), Blockbusters + The Wall (2 devices).
+2. Whatever Jon fancies next — roster is otherwise green.
