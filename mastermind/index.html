@@ -207,6 +207,9 @@ function injectBackLink(h){const a=document.createElement('a');a.className='back
 return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,getRecord:getRecord,injectBackLink:injectBackLink,loadRecords:load};
 })();
 GameFramework.injectBackLink();
+GameFramework.sfx=(function(){let ctx=null;function ac(){try{if(!ctx){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ctx=new A();}if(ctx.state==='suspended')ctx.resume();return ctx;}catch(e){return null;}}
+function tone(f,ty,dur,del,vol){const c=ac();if(!c)return;try{const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+(del||0);o.type=ty;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+0.015);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+0.05);}catch(e){}}
+return{click:function(){tone(660,'square',0.06,0,0.04);},win:function(){tone(523.25,'sine',0.16,0,0.1);tone(659.25,'sine',0.16,0.11,0.1);tone(783.99,'sine',0.28,0.22,0.1);},lose:function(){tone(330,'sine',0.18,0,0.08);tone(247,'sine',0.3,0.15,0.08);}};})();
 </script>
   <h1>Mastermind</h1>
   <div class="sub">Configure your game, then hit Start Game</div>
@@ -415,6 +418,7 @@ GameFramework.injectBackLink();
     if (gameState !== 'playing') return;
     gameState = 'over';
     stopTimer();
+    GameFramework.sfx.lose();
     statusEl.textContent = "Time's up! The code was:";
     render();
     revealSecret();
@@ -665,6 +669,7 @@ GameFramework.injectBackLink();
     if (won) {
       gameState = 'over';
       stopTimer();
+      GameFramework.sfx.win();
       // record best time for this mode + config
       const configKey = `${config.mode}-c${config.numColors}-h${config.codeLen}-g${config.maxGuesses}`;
       const result = window.GameFramework
@@ -678,6 +683,7 @@ GameFramework.injectBackLink();
     } else if (currentRow >= config.maxGuesses) {
       gameState = 'over';
       stopTimer();
+      GameFramework.sfx.lose();
       statusEl.textContent = 'Out of guesses. The code was:';
       render();
       revealSecret();

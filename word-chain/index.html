@@ -74,6 +74,9 @@ function injectBackLink(h){const a=document.createElement('a');a.className='back
 return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,injectBackLink:injectBackLink};
 })();
 GameFramework.injectBackLink();
+GameFramework.sfx=(function(){let ctx=null;function ac(){try{if(!ctx){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ctx=new A();}if(ctx.state==='suspended')ctx.resume();return ctx;}catch(e){return null;}}
+function tone(f,ty,dur,del,vol){const c=ac();if(!c)return;try{const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+(del||0);o.type=ty;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+0.015);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+0.05);}catch(e){}}
+return{click:function(){tone(660,'square',0.06,0,0.04);},win:function(){tone(523.25,'sine',0.16,0,0.1);tone(659.25,'sine',0.16,0.11,0.1);tone(783.99,'sine',0.28,0.22,0.1);},lose:function(){tone(330,'sine',0.18,0,0.08);tone(247,'sine',0.3,0.15,0.08);}};})();
 </script>
 
   <h1>Word Chain</h1>
@@ -128,6 +131,56 @@ GameFramework.injectBackLink();
     ['VALLEY','YAK','KING','GIRAFFE','ELEPHANT','TREE'],
     ['BRIDGE','ECHO','OCEAN','NIGHT','TIGER','RIVER'],
     ['ANCHOR','ROOT','TREE','EAGLE','ELK','KITE'],
+    ['PIANO','ORANGE','ELBOW','WINTER','RADIO','ONION'],
+    ['TABLE','EGG','GRAPE','EMERALD','DOLPHIN','NUT'],
+    ['SPOON','NEEDLE','ENGINE','EAGLE','EMBER','RAVEN'],
+    ['CANDLE','ENVELOPE','EMPIRE','ECHO','OTTER','RHINO'],
+    ['GARDEN','NICKEL','LEMON','NACHO','OYSTER','RAISIN'],
+    ['MAGNET','TUNNEL','LADDER','RUBY','YOGURT','TOAST'],
+    ['WALRUS','SADDLE','ENIGMA','ANCHOR','RIBBON','NUTMEG'],
+    ['PUZZLE','EMERALD','DRAGON','NAPKIN','NOODLE','EMPIRE'],
+    ['FALCON','NECTAR','ROBIN','NUGGET','TEMPLE','EXPRESS'],
+    ['HAMMER','RACCOON','NICKEL','LANTERN','NARWHAL','LIZARD'],
+    ['CIRCUS','SALMON','NOMAD','DESERT','TURNIP','PARROT'],
+    ['JIGSAW','WIZARD','DONKEY','YELLOW','WALNUT','TANGO'],
+    ['OXYGEN','NUGGET','TIMBER','RASCAL','LAGOON','NEPTUNE'],
+    ['VELVET','TRUMPET','TOFFEE','ESCAPE','EMBLEM','MARBLE'],
+    ['BUTTER','RHUBARB','BANJO','OASIS','SPHINX','XENON'],
+    ['CACTUS','SAFARI','IGLOO','ORCHARD','DIAMOND','DENIM'],
+    ['PEPPER','RIDDLE','ELIXIR','RANCH','HUMMUS','SQUID'],
+    ['MIRROR','ROOSTER','RABBIT','THIMBLE','ELM','MAMMOTH'],
+    ['KETTLE','EAGLET','TWILIGHT','THRONE','EMPRESS','SONNET'],
+    ['GOBLIN','NOODLE','ELDER','RAFT','TULIP','PYTHON'],
+    ['BREAD','DRAGON','NIGHT','TOWER','RADISH'],
+    ['CLOCK','KOALA','APRON','NEPHEW','WAGON'],
+    ['FLUTE','ENERGY','YACHT','TURTLE','ECLIPSE'],
+    ['STORM','MELON','NARWHAL','LOBSTER','RAINBOW'],
+    ['PLANK','KAYAK','KINGDOM','MUSTARD','DOMINO'],
+    ['SHIELD','DOLPHIN','NUTMEG','GALLEON','NECTAR'],
+    ['CRAYON','NUMBER','RAPTOR','RHYTHM','MEADOW'],
+    ['TEMPO','ORBIT','TALON','NICKEL','LLAMA'],
+    ['WIDOW','WOMBAT','TUXEDO','OCELOT','TAVERN'],
+    ['GLOBE','EMBER','RUSTLE','ESTUARY','YONDER'],
+    ['PRISM','MAGPIE','ENGINE','EXODUS','SPIRAL'],
+    ['BUCKET','TUNDRA','ABACUS','SUNSET','TENNIS'],
+    ['FOREST','TRIPOD','DYNAMO','OPAL','LENTIL'],
+    ['HAZEL','LOTUS','SHERBET','TROUT','TUNNEL'],
+    ['MOSAIC','CEDAR','RUNWAY','YEAST','TIMBER'],
+    ['LAMP','PEACH','HORN','NOSE'],
+    ['GRAPE','ECHO','OWL','LEAF'],
+    ['TOAST','TRAIN','NACHO','ONYX'],
+    ['CABIN','NYLON','NOMAD','DICE'],
+    ['SCARF','FROST','TIARA','AMBER'],
+    ['SWORD','DENIM','MANGO','OTTER'],
+    ['QUILT','TOKEN','NINJA','ALMOND'],
+    ['ZEBRA','APRICOT','TROPHY','YARN'],
+    ['JEWEL','LLAMA','ACORN','NORTH'],
+    ['VIOLIN','NUTMEG','GECKO','OASIS'],
+    ['PLUM','MAPLE','EMBER','RESCUE'],
+    ['WAFFLE','EAGLE','ESCAPE','EMERALD'],
+    ['BISON','NICKEL','LEMON','NEST'],
+    ['DAISY','YOGURT','TANGO','ORBIT'],
+    ['FUNGUS','SPIDER','RIDDLE','ECHO'],
   ];
 
   const config = { length: 4 };
@@ -266,6 +319,7 @@ GameFramework.injectBackLink();
     }
     if (allOk) {
       gameState = 'over'; timer.stop();
+      GameFramework.sfx.win();
       const res = window.GameFramework.recordWin('word-chain', timer.elapsed, `len${config.length}`);
       const nb = res.isNewBest ? '<span class="new-best">NEW BEST</span>' : '';
       statusEl.innerHTML = `Chain complete in ${window.GameFramework.formatTime(timer.elapsed)} ${nb}`;

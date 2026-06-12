@@ -78,6 +78,9 @@ function injectBackLink(h){const a=document.createElement('a');a.className='back
 return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,injectBackLink:injectBackLink};
 })();
 GameFramework.injectBackLink();
+GameFramework.sfx=(function(){let ctx=null;function ac(){try{if(!ctx){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ctx=new A();}if(ctx.state==='suspended')ctx.resume();return ctx;}catch(e){return null;}}
+function tone(f,ty,dur,del,vol){const c=ac();if(!c)return;try{const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+(del||0);o.type=ty;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+0.015);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+0.05);}catch(e){}}
+return{click:function(){tone(660,'square',0.06,0,0.04);},win:function(){tone(523.25,'sine',0.16,0,0.1);tone(659.25,'sine',0.16,0.11,0.1);tone(783.99,'sine',0.28,0.22,0.1);},lose:function(){tone(330,'sine',0.18,0,0.08);tone(247,'sine',0.3,0.15,0.08);}};})();
 </script>
 
   <h1>Synonym Dominoes</h1>
@@ -141,6 +144,63 @@ GameFramework.injectBackLink();
     ['tired','exhausted','weary','drained'],
     ['clean','tidy','spotless','pristine'],
     ['dirty','filthy','grimy','soiled'],
+    ['begin','start','commence','initiate'],
+    ['end','finish','conclude','terminate'],
+    ['shout','yell','holler','bellow'],
+    ['whisper','murmur','mumble'],
+    ['walk','stroll','amble','saunter'],
+    ['run','sprint','dash','bolt'],
+    ['jump','leap','bound','vault'],
+    ['throw','toss','hurl','fling'],
+    ['grab','seize','snatch','clutch'],
+    ['look','gaze','stare','peer'],
+    ['eat','devour','consume','munch'],
+    ['drink','sip','gulp','swig'],
+    ['sleep','doze','snooze','slumber'],
+    ['laugh','giggle','chuckle','cackle'],
+    ['cry','weep','sob','wail'],
+    ['talk','chat','converse','natter'],
+    ['think','ponder','muse','contemplate'],
+    ['build','construct','erect','assemble'],
+    ['break','shatter','smash','fracture'],
+    ['fix','repair','mend','restore'],
+    ['hide','conceal','mask','veil'],
+    ['show','reveal','display','exhibit'],
+    ['wet','damp','moist','soggy'],
+    ['dry','arid','parched'],
+    ['shiny','gleaming','glossy','lustrous'],
+    ['dark','dim','murky','shadowy'],
+    ['empty','vacant','bare','hollow'],
+    ['full','packed','crowded','crammed'],
+    ['smooth','sleek','silky'],
+    ['rough','coarse','jagged','bumpy'],
+    ['sharp','keen','pointed'],
+    ['dull','blunt'],
+    ['real','genuine','authentic','actual'],
+    ['fake','false','phony','counterfeit'],
+    ['sure','certain','confident','positive'],
+    ['odd','strange','weird','peculiar'],
+    ['normal','ordinary','typical','usual'],
+    ['rare','scarce','uncommon'],
+    ['famous','renowned','celebrated','notable'],
+    ['wrong','incorrect','mistaken','erroneous'],
+    ['right','correct','accurate','precise'],
+    ['risky','dangerous','perilous','hazardous'],
+    ['safe','secure','protected'],
+    ['calm','tranquil','serene','placid'],
+    ['wild','frantic','frenzied','chaotic'],
+    ['lucky','fortunate','charmed'],
+    ['greedy','selfish','grasping'],
+    ['generous','charitable','lavish'],
+    ['lazy','idle','sluggish','lethargic'],
+    ['eager','enthusiastic','avid','zealous'],
+    ['polite','courteous','respectful','civil'],
+    ['rude','impolite','insolent','impertinent'],
+    ['smelly','stinky','pungent','rank'],
+    ['tasty','delicious','flavourful','scrumptious'],
+    ['boring','tedious','monotonous','dreary'],
+    ['important','crucial','vital','essential'],
+    ['trivial','minor','petty','insignificant'],
   ];
 
   // Build a quick lookup: word -> group index
@@ -271,6 +331,7 @@ GameFramework.injectBackLink();
     if (gameState !== 'playing') return;
     if (countOkLinks() === current.length - 1) {
       gameState = 'over'; timer.stop();
+      GameFramework.sfx.win();
       const res = window.GameFramework.recordWin('synonym-dominoes', timer.elapsed, `len${config.length}`);
       const nb = res.isNewBest ? '<span class="new-best">NEW BEST</span>' : '';
       statusEl.innerHTML = `Solved in ${window.GameFramework.formatTime(timer.elapsed)} ${nb}`;

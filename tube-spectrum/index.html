@@ -87,10 +87,13 @@ function injectBackLink(h){const a=document.createElement('a');a.className='back
 return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,injectBackLink:injectBackLink};
 })();
 GameFramework.injectBackLink();
+GameFramework.sfx=(function(){let ctx=null;function ac(){try{if(!ctx){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ctx=new A();}if(ctx.state==='suspended')ctx.resume();return ctx;}catch(e){return null;}}
+function tone(f,ty,dur,del,vol){const c=ac();if(!c)return;try{const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+(del||0);o.type=ty;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+0.015);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+0.05);}catch(e){}}
+return{click:function(){tone(660,'square',0.06,0,0.04);},win:function(){tone(523.25,'sine',0.16,0,0.1);tone(659.25,'sine',0.16,0.11,0.1);tone(783.99,'sine',0.28,0.22,0.1);},lose:function(){tone(330,'sine',0.18,0,0.08);tone(247,'sine',0.3,0.15,0.08);}};})();
 </script>
 
   <h1>Tube Spectrum</h1>
-  <div class="sub">Arrange the tubes in the correct colour spectrum order</div>
+  <div class="sub">Arrange the tubes in the correct colour order for the chosen theme</div>
 
   <div class="settings" id="settings">
     <label>Number of tubes: <span class="val" id="countVal">5</span></label>
@@ -103,6 +106,14 @@ GameFramework.injectBackLink();
     <div class="pill-group" id="hintToggle">
       <button class="pill active" data-hint="specific">Highlight correct</button>
       <button class="pill" data-hint="count">Count only</button>
+    </div>
+
+    <label>Theme:</label>
+    <div class="pill-group" id="themeToggle">
+      <button class="pill active" data-theme="spectrum">Spectrum</button>
+      <button class="pill" data-theme="warmcool">Warm → Cool</button>
+      <button class="pill" data-theme="ocean">Ocean</button>
+      <button class="pill" data-theme="sunset">Sunset</button>
     </div>
   </div>
 
@@ -126,18 +137,60 @@ GameFramework.injectBackLink();
   <div class="status" id="status"></div>
 
 <script>
-  // Rainbow spectrum in order (closest to ROYGBIV but picking vivid distinguishable hues)
-  const SPECTRUM = [
-    { id: 'red',    name: 'Red',    color: '#e74c3c' },
-    { id: 'orange', name: 'Orange', color: '#f39c12' },
-    { id: 'yellow', name: 'Yellow', color: '#f1c40f' },
-    { id: 'green',  name: 'Green',  color: '#3ed598' },
-    { id: 'cyan',   name: 'Cyan',   color: '#1abc9c' },
-    { id: 'blue',   name: 'Blue',   color: '#3498db' },
-    { id: 'violet', name: 'Violet', color: '#9b59b6' },
-  ];
+  // Named colour themes. Each is an ORDERED palette of 7 visually distinct
+  // colours — the goal of the game is to restore this order.
+  const THEMES = {
+    spectrum: {
+      name: 'Spectrum',
+      tubes: [
+        { id: 'red',    name: 'Red',    color: '#e74c3c' },
+        { id: 'orange', name: 'Orange', color: '#f39c12' },
+        { id: 'yellow', name: 'Yellow', color: '#f1c40f' },
+        { id: 'green',  name: 'Green',  color: '#3ed598' },
+        { id: 'cyan',   name: 'Cyan',   color: '#25c5e8' },
+        { id: 'blue',   name: 'Blue',   color: '#3a66db' },
+        { id: 'violet', name: 'Violet', color: '#9b59b6' },
+      ],
+    },
+    warmcool: {
+      name: 'Warm → Cool',
+      tubes: [
+        { id: 'crimson', name: 'Crimson', color: '#d92638' },
+        { id: 'orange',  name: 'Orange',  color: '#f77f00' },
+        { id: 'gold',    name: 'Gold',    color: '#ffd23f' },
+        { id: 'lime',    name: 'Lime',    color: '#9ef01a' },
+        { id: 'teal',    name: 'Teal',    color: '#2ec4b6' },
+        { id: 'azure',   name: 'Azure',   color: '#3a86ff' },
+        { id: 'violet',  name: 'Violet',  color: '#8338ec' },
+      ],
+    },
+    ocean: {
+      name: 'Ocean',
+      tubes: [
+        { id: 'pearl',  name: 'Pearl',     color: '#f1f5f9' },
+        { id: 'sand',   name: 'Sand',      color: '#ecd594' },
+        { id: 'coral',  name: 'Coral',     color: '#ff7a6e' },
+        { id: 'kelp',   name: 'Kelp',      color: '#4ade80' },
+        { id: 'turq',   name: 'Turquoise', color: '#22d3ee' },
+        { id: 'deep',   name: 'Deep Blue', color: '#3b5bdb' },
+        { id: 'abyss',  name: 'Abyss',     color: '#7c3aed' },
+      ],
+    },
+    sunset: {
+      name: 'Sunset',
+      tubes: [
+        { id: 'gold',     name: 'Gold',     color: '#ffd43b' },
+        { id: 'orange',   name: 'Orange',   color: '#ff922b' },
+        { id: 'scarlet',  name: 'Scarlet',  color: '#f03e3e' },
+        { id: 'pink',     name: 'Pink',     color: '#f06595' },
+        { id: 'purple',   name: 'Purple',   color: '#9c36b5' },
+        { id: 'indigo',   name: 'Indigo',   color: '#4263eb' },
+        { id: 'midnight', name: 'Midnight', color: '#23255e' },
+      ],
+    },
+  };
 
-  const config = { count: 5, maxAttempts: 4, hint: 'specific' };
+  const config = { count: 5, maxAttempts: 4, hint: 'specific', theme: 'spectrum' };
   let correct = [];
   let current = [];
   let selected = null;
@@ -155,6 +208,17 @@ GameFramework.injectBackLink();
   const countInput = $('countInput'), countVal = $('countVal');
   const attemptsInput = $('attemptsInput'), attemptsVal = $('attemptsVal');
   const hintToggle = $('hintToggle');
+  const themeToggle = $('themeToggle');
+
+  let currentTheme = 'spectrum';
+  themeToggle.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      if (gameState === 'playing') return;
+      currentTheme = b.dataset.theme;
+      themeToggle.querySelectorAll('button').forEach(x =>
+        x.classList.toggle('active', x === b));
+    });
+  });
 
   let currentHint = 'specific';
   hintToggle.querySelectorAll('button').forEach(b => {
@@ -190,8 +254,9 @@ GameFramework.injectBackLink();
     config.count = parseInt(countInput.value, 10);
     config.maxAttempts = parseInt(attemptsInput.value, 10);
     config.hint = currentHint;
+    config.theme = currentTheme;
 
-    correct = SPECTRUM.slice(0, config.count);
+    correct = THEMES[config.theme].tubes.slice(0, config.count);
     do { current = shuffle(correct); } while (equalOrder(current, correct));
 
     selected = null;
@@ -274,8 +339,9 @@ GameFramework.injectBackLink();
 
     if (n === correct.length) {
       gameState = 'over'; timer.stop();
+      GameFramework.sfx.win();
       lastFlags = flags;
-      const configKey = `n${config.count}-${config.hint}`;
+      const configKey = `n${config.count}-${config.hint}-${config.theme}`;
       const res = window.GameFramework.recordWin('tube-spectrum', timer.elapsed, configKey);
       const nb = res.isNewBest ? '<span class="new-best">NEW BEST</span>' : '';
       statusEl.innerHTML = `Solved in ${attempts} attempt${attempts === 1 ? '' : 's'} · ${window.GameFramework.formatTime(timer.elapsed)} ${nb}`;
@@ -287,15 +353,17 @@ GameFramework.injectBackLink();
 
     if (config.hint === 'specific') {
       lastFlags = flags;
-      feedbackEl.textContent = `${n} of ${correct.length} in the right position.`;
+      feedbackEl.textContent = `${n} of ${correct.length} in the right position — correct tubes highlighted.`;
     } else {
+      // Count-only mode: just the number, no positional highlights.
       lastFlags = null;
-      feedbackEl.textContent = `${n} of ${correct.length} in the right position.`;
+      feedbackEl.textContent = `${n} of ${correct.length} correct.`;
     }
     feedbackEl.classList.remove('hidden');
 
     if (attempts >= config.maxAttempts) {
       gameState = 'over'; timer.stop();
+      GameFramework.sfx.lose();
       statusEl.textContent = 'Out of attempts. Correct order: ' + correct.map(c => c.name).join(' → ');
       current = correct.slice();
       lastFlags = current.map(() => true);

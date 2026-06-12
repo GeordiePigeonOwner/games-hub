@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Number Tower</title>
+<title>Number Rush</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -47,116 +47,109 @@ button.pill.active{background:linear-gradient(135deg,#6ac9ff 0%,#9a7bff 100%);co
 <style>
   .settings input[type="range"] { width: 180px; }
 
-  .target-pill {
-    background: linear-gradient(135deg, rgba(197,140,255,0.15), rgba(154,123,255,0.1));
-    border: 1px solid rgba(197,140,255,0.35);
-    padding: 10px 22px;
+  .target-display {
+    background: linear-gradient(135deg, rgba(106,201,255,0.12), rgba(154,123,255,0.1));
+    border: 1px solid rgba(106,201,255,0.28);
+    padding: 14px 28px;
     border-radius: var(--r-md);
-    display: flex;
-    gap: 14px;
-    align-items: center;
     margin-bottom: 14px;
+    text-align: center;
+    min-width: 280px;
   }
-  .target-pill .label {
+  .target-label {
     font-size: 11px;
-    color: var(--text-dim);
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-  }
-  .target-pill .val {
-    font-family: var(--font-mono);
-    font-size: 28px;
-    font-weight: 700;
-    color: #c58cff;
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-  }
-
-  .tower {
-    display: grid;
-    grid-template-columns: auto repeat(4, 1fr);
-    gap: 8px;
-    padding: 22px;
-    min-width: 460px;
-  }
-
-  .col-header {
-    font-size: 10px;
-    color: var(--text-faint);
-    text-transform: uppercase;
     letter-spacing: 0.2em;
-    text-align: center;
-    font-weight: 700;
-    padding: 6px 0;
-  }
-  .col-header.first { grid-column: 1 / span 1; text-align: right; padding-right: 10px; }
-
-  .rotate-cell {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding-right: 10px;
-    gap: 4px;
-  }
-  .rotate-btn {
-    background: linear-gradient(180deg, var(--surface-hi), var(--surface-2));
-    color: var(--text);
-    border: 1px solid var(--border-hi);
-    width: 34px; height: 34px;
-    border-radius: var(--r-sm);
-    font-size: 16px;
-    padding: 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  }
-  .rotate-btn:hover:not(:disabled) {
-    border-color: rgba(197,140,255,0.6);
-    box-shadow: 0 4px 10px rgba(197,140,255,0.25);
-  }
-
-  .face {
-    background:
-      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.08), transparent 50%),
-      linear-gradient(180deg, var(--surface-2), var(--bg-2));
-    border: 1px solid var(--border);
-    border-radius: var(--r-sm);
-    padding: 14px 0;
-    font-family: var(--font-mono);
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--text);
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05);
-    transition: all 0.2s var(--ease);
-  }
-  .face.visible-shift {
-    animation: faceShift 0.3s ease-out;
-  }
-  @keyframes faceShift {
-    0%   { transform: rotateY(-90deg); opacity: 0; }
-    100% { transform: rotateY(0); opacity: 1; }
-  }
-
-  .sum-cell {
-    text-align: center;
-    padding: 10px 0 4px;
-    font-family: var(--font-mono);
-    font-size: 20px;
-    font-weight: 700;
     color: var(--text-dim);
-    font-variant-numeric: tabular-nums;
-    border-top: 1px dashed var(--border);
-    margin-top: 6px;
-    transition: color 0.2s var(--ease);
+    text-transform: uppercase;
+    font-weight: 700;
   }
-  .sum-cell.correct { color: var(--success); text-shadow: 0 0 12px rgba(62,213,152,0.5); }
-  .sum-cell.wrong   { color: var(--danger); }
+  .target-num {
+    font-family: var(--font-mono);
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .target-num.done {
+    background: linear-gradient(135deg, #ffd77a, #3ed598);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 
-  .board.idle { display: flex; align-items: center; justify-content: center; padding: 48px 24px; min-height: 220px; min-width: 340px; }
-  .idle-msg { color: var(--text-faint); font-size: 14px; text-align: center; }
+  .board {
+    display: grid;
+    gap: 6px;
+    padding: 18px;
+    max-width: 760px;
+    width: 100%;
+  }
+
+  .num-btn {
+    position: relative;
+    aspect-ratio: 1;
+    background: linear-gradient(180deg, var(--surface-2), var(--bg-2));
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
+    transition: all 0.12s var(--ease);
+    font-variant-numeric: tabular-nums;
+  }
+  .num-btn:hover:not(.done):not(:disabled) {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, var(--surface-hi), var(--surface-2));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(106,201,255,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .num-btn.done {
+    background: linear-gradient(180deg, rgba(62,213,152,0.22), rgba(62,213,152,0.1));
+    border-color: rgba(62,213,152,0.45);
+    color: var(--text-faint);
+    cursor: default;
+    box-shadow: none;
+  }
+  .num-btn.done::after {
+    content: '✓';
+    position: absolute;
+    top: 3px; right: 5px;
+    font-size: 10px;
+    color: var(--success);
+  }
+  .num-btn.wrong {
+    animation: shake 0.35s var(--ease);
+    background: linear-gradient(180deg, rgba(255,107,107,0.3), rgba(255,107,107,0.1));
+    border-color: rgba(255,107,107,0.6);
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-4px); }
+    75%      { transform: translateX(4px); }
+  }
+
+  .penalty-flash {
+    position: absolute;
+    color: var(--danger);
+    font-weight: 700;
+    font-size: 14px;
+    pointer-events: none;
+    animation: flashUp 0.8s ease-out forwards;
+    z-index: 100;
+  }
+  @keyframes flashUp {
+    0%   { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -32px); }
+  }
 
   .controls { margin-top: 18px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .idle-msg { color: var(--text-faint); font-size: 14px; text-align: center; padding: 40px; }
 </style>
 </head>
 <body>
@@ -169,25 +162,32 @@ function load(){try{const r=localStorage.getItem(K);return r?JSON.parse(r):{};}c
 function save(r){try{localStorage.setItem(K,JSON.stringify(r));}catch(e){}}
 function recordWin(g,s,c){const a=load();const k=c?g+':'+c:g;const e=a[k]||{wins:0};const nb=e.bestSeconds==null||s<e.bestSeconds;a[k]={bestSeconds:nb?s:e.bestSeconds,wins:(e.wins||0)+1,lastPlayed:Date.now()};save(a);return{isNewBest:nb,bestSeconds:a[k].bestSeconds};}
 function getRecord(g){const a=load();const p=g+':';let b=null,w=0,lp=0;for(const k of Object.keys(a)){if(k!==g&&!k.startsWith(p))continue;const r=a[k];w+=r.wins||0;if(r.lastPlayed>lp)lp=r.lastPlayed;if(r.bestSeconds!=null&&(b==null||r.bestSeconds<b))b=r.bestSeconds;}if(w===0&&b==null)return null;return{bestSeconds:b,wins:w,lastPlayed:lp};}
-function injectBackLink(h){const a=document.createElement('a');a.className='back-link';a.href=h||'../index.html';a.textContent='\u2190 Menu';document.body.appendChild(a);}
+function injectBackLink(h){const a=document.createElement('a');a.className='back-link';a.href=h||'../index.html';a.textContent='← Menu';document.body.appendChild(a);}
 return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,getRecord:getRecord,injectBackLink:injectBackLink,loadRecords:load};
 })();
 GameFramework.injectBackLink();
-GameFramework.sfx=(function(){let ctx=null;function ac(){try{if(!ctx){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ctx=new A();}if(ctx.state==='suspended')ctx.resume();return ctx;}catch(e){return null;}}
-function tone(f,ty,dur,del,vol){const c=ac();if(!c)return;try{const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+(del||0);o.type=ty;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+0.015);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+0.05);}catch(e){}}
-return{click:function(){tone(660,'square',0.06,0,0.04);},win:function(){tone(523.25,'sine',0.16,0,0.1);tone(659.25,'sine',0.16,0.11,0.1);tone(783.99,'sine',0.28,0.22,0.1);},lose:function(){tone(330,'sine',0.18,0,0.08);tone(247,'sine',0.3,0.15,0.08);}};})();
 </script>
-  <h1>Number Tower</h1>
-  <div class="sub">Rotate each block so all four sides add up to the target</div>
+  <h1>Number Rush</h1>
+  <div class="sub">Press every number from N down to 1, as fast as you can</div>
 
   <div class="settings" id="settings">
-    <label>Blocks: <span class="val" id="blocksVal">4</span></label>
-    <input type="range" id="blocksInput" min="3" max="6" value="4">
-  </div>
+    <label>Max number: <span class="val" id="maxVal">50</span></label>
+    <input type="range" id="maxInput" min="16" max="100" step="4" value="50">
 
-  <div class="target-pill">
-    <span class="label">Target sum</span>
-    <span class="val" id="targetDisplay">20</span>
+    <label>Penalty:</label>
+    <div class="pill-group" id="penaltyToggle">
+      <button class="pill active" data-penalty="lockin">Lock-in</button>
+      <button class="pill" data-penalty="5s">+5s</button>
+      <button class="pill" data-penalty="none">None</button>
+    </div>
+
+    <label>Timer limit:
+      <span class="val" id="timerVal">off</span>
+    </label>
+    <div class="settings-row">
+      <input type="checkbox" id="timerEnabled">
+      <input type="range" id="timerInput" min="30" max="600" step="15" value="180" disabled>
+    </div>
   </div>
 
   <div class="timer-bar">
@@ -195,7 +195,12 @@ return{click:function(){tone(660,'square',0.06,0,0.04);},win:function(){tone(523
     <div class="timer" id="timerDisplay">00:00</div>
   </div>
 
-  <div class="board idle" id="board">
+  <div class="target-display" id="targetDisplay">
+    <div class="target-label">Ready</div>
+    <div class="target-num" id="targetNum">—</div>
+  </div>
+
+  <div class="board panel" id="board">
     <div class="idle-msg">Press <b>Start Game</b> to begin</div>
   </div>
 
@@ -208,108 +213,64 @@ return{click:function(){tone(660,'square',0.06,0,0.04);},win:function(){tone(523
 
 <script>
   const config = {
-    blocks: 4,
-    target: 20,
+    max: 50,
+    penalty: 'lockin', // 'lockin' | '5s' | 'none'
+    timerLimit: 0,
   };
 
-  // blocks: each is an array of 4 face values
-  // rotations: per block, integer 0..3
-  let blocks = [];
-  let rotations = [];
-  let moves = 0;
+  let target = 0;
   let gameState = 'idle';
   let timer = null;
+  let mistakes = 0;
+  let penaltyTotal = 0; // extra seconds added for 5s mode
 
   const boardEl = document.getElementById('board');
   const settingsEl = document.getElementById('settings');
   const startBtn = document.getElementById('startBtn');
   const resetBtn = document.getElementById('resetBtn');
   const statusEl = document.getElementById('status');
+  const targetNum = document.getElementById('targetNum');
+  const targetLabel = document.querySelector('.target-label');
   const progressMeta = document.getElementById('progressMeta');
   const timerDisplay = document.getElementById('timerDisplay');
-  const targetDisplay = document.getElementById('targetDisplay');
 
-  const blocksInput = document.getElementById('blocksInput');
-  const blocksVal = document.getElementById('blocksVal');
+  const maxInput = document.getElementById('maxInput');
+  const maxVal = document.getElementById('maxVal');
+  const timerInput = document.getElementById('timerInput');
+  const timerEnabled = document.getElementById('timerEnabled');
+  const timerVal = document.getElementById('timerVal');
+  const penaltyToggle = document.getElementById('penaltyToggle');
 
-  function computeTarget(n) { return n * 5; } // nice round: 15, 20, 25, 30
+  let currentPenalty = 'lockin';
+  penaltyToggle.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      if (gameState === 'playing') return;
+      currentPenalty = b.dataset.penalty;
+      penaltyToggle.querySelectorAll('button').forEach(x =>
+        x.classList.toggle('active', x === b));
+    });
+  });
 
   function updateSettingsDisplay() {
-    blocksVal.textContent = blocksInput.value;
-    const n = parseInt(blocksInput.value, 10);
-    targetDisplay.textContent = computeTarget(n);
+    maxVal.textContent = maxInput.value;
+    timerVal.textContent = timerEnabled.checked
+      ? window.GameFramework.formatTime(parseInt(timerInput.value, 10))
+      : 'off';
   }
-  blocksInput.addEventListener('input', updateSettingsDisplay);
-
-  // Generate n random values (each 1..9) summing to target, or null if impossible.
-  function randomValues(n, target) {
-    // bounds: min total n, max total 9n
-    if (target < n || target > 9 * n) return null;
-    for (let tries = 0; tries < 100; tries++) {
-      let sum = 0;
-      const vals = [];
-      let ok = true;
-      for (let i = 0; i < n - 1; i++) {
-        const remaining = n - i - 1;
-        const minV = Math.max(1, target - sum - 9 * remaining);
-        const maxV = Math.min(9, target - sum - 1 * remaining);
-        if (maxV < minV) { ok = false; break; }
-        const v = minV + Math.floor(Math.random() * (maxV - minV + 1));
-        vals.push(v);
-        sum += v;
-      }
-      if (ok) {
-        const last = target - sum;
-        if (last >= 1 && last <= 9) { vals.push(last); return vals; }
-      }
-    }
-    return null;
-  }
-
-  function generatePuzzle(n, target) {
-    // For each of 4 columns, pick n values summing to target.
-    // Then assemble blocks: block[b] = [col0[b], col1[b], col2[b], col3[b]]
-    for (let attempt = 0; attempt < 20; attempt++) {
-      const cols = [];
-      let ok = true;
-      for (let c = 0; c < 4; c++) {
-        const v = randomValues(n, target);
-        if (!v) { ok = false; break; }
-        cols.push(v);
-      }
-      if (!ok) continue;
-      const newBlocks = [];
-      for (let b = 0; b < n; b++) {
-        newBlocks.push([cols[0][b], cols[1][b], cols[2][b], cols[3][b]]);
-      }
-      return newBlocks;
-    }
-    return null;
-  }
+  [maxInput, timerInput].forEach(el => el.addEventListener('input', updateSettingsDisplay));
+  timerEnabled.addEventListener('change', () => {
+    timerInput.disabled = !timerEnabled.checked;
+    updateSettingsDisplay();
+  });
 
   function startGame() {
-    config.blocks = parseInt(blocksInput.value, 10);
-    config.target = computeTarget(config.blocks);
-    targetDisplay.textContent = config.target;
+    config.max = parseInt(maxInput.value, 10);
+    config.penalty = currentPenalty;
+    config.timerLimit = timerEnabled.checked ? parseInt(timerInput.value, 10) : 0;
 
-    blocks = generatePuzzle(config.blocks, config.target);
-    if (!blocks) { statusEl.textContent = 'Could not generate puzzle — try a different block count.'; return; }
-
-    // Random rotations, guaranteed not already solved.
-    // Bounded retry — error out gracefully instead of looping forever on a
-    // pathological puzzle that is solved under every rotation.
-    let scrambled = false;
-    for (let t = 0; t < 200 && !scrambled; t++) {
-      rotations = Array.from({ length: config.blocks },
-        () => Math.floor(Math.random() * 4));
-      if (!rotations.every(r => r === 0) && !isSolved()) scrambled = true;
-    }
-    if (!scrambled) {
-      statusEl.textContent = 'Could not generate puzzle — please try again.';
-      return;
-    }
-
-    moves = 0;
+    target = config.max;
+    mistakes = 0;
+    penaltyTotal = 0;
     gameState = 'playing';
     statusEl.textContent = '';
 
@@ -319,130 +280,109 @@ return{click:function(){tone(660,'square',0.06,0,0.04);},win:function(){tone(523
     resetBtn.textContent = 'Reset';
 
     renderBoard();
+    updateTarget();
 
-    timer = window.GameFramework.createTimer({ display: timerDisplay });
+    timer = window.GameFramework.createTimer({
+      display: timerDisplay,
+      limitSeconds: config.timerLimit,
+      onExpire: timeUp,
+    });
     timer.start();
-  }
-
-  function faceAt(blockIdx, col) {
-    return blocks[blockIdx][(col + rotations[blockIdx]) % 4];
-  }
-
-  function columnSum(col) {
-    let s = 0;
-    for (let b = 0; b < config.blocks; b++) s += faceAt(b, col);
-    return s;
-  }
-
-  function isSolved() {
-    for (let c = 0; c < 4; c++) if (columnSum(c) !== config.target) return false;
-    return true;
   }
 
   function renderBoard() {
     boardEl.innerHTML = '';
     boardEl.classList.remove('idle');
+    // grid dimensions: roughly square
+    const cols = Math.ceil(Math.sqrt(config.max * 1.3));
+    boardEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
-    const grid = document.createElement('div');
-    grid.className = 'tower';
-
-    // headers row
-    const labels = ['', 'Front', 'Right', 'Back', 'Left'];
-    for (let i = 0; i < 5; i++) {
-      const h = document.createElement('div');
-      h.className = 'col-header';
-      h.textContent = labels[i];
-      grid.appendChild(h);
+    // shuffle an array [1..max] and render in that order
+    const nums = Array.from({ length: config.max }, (_, i) => i + 1);
+    for (let i = nums.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [nums[i], nums[j]] = [nums[j], nums[i]];
     }
 
-    for (let b = 0; b < config.blocks; b++) {
-      // rotate button cell
-      const rot = document.createElement('div');
-      rot.className = 'rotate-cell';
-      const btn = document.createElement('button');
-      btn.className = 'rotate-btn';
-      btn.textContent = '↻';
-      btn.title = 'Rotate block';
-      btn.addEventListener('click', () => rotate(b));
-      rot.appendChild(btn);
-      grid.appendChild(rot);
-
-      // 4 face cells
-      for (let c = 0; c < 4; c++) {
-        const face = document.createElement('div');
-        face.className = 'face';
-        face.dataset.block = b;
-        face.dataset.col = c;
-        face.textContent = faceAt(b, c);
-        grid.appendChild(face);
-      }
+    for (const n of nums) {
+      const b = document.createElement('button');
+      b.className = 'num-btn';
+      b.textContent = n;
+      b.dataset.num = n;
+      b.addEventListener('click', (e) => onNumberClick(n, b, e));
+      boardEl.appendChild(b);
     }
-
-    // sum row
-    const sumLabel = document.createElement('div');
-    sumLabel.className = 'col-header first';
-    sumLabel.textContent = 'Sum';
-    sumLabel.style.color = 'var(--text-dim)';
-    grid.appendChild(sumLabel);
-
-    for (let c = 0; c < 4; c++) {
-      const sum = document.createElement('div');
-      sum.className = 'sum-cell';
-      sum.dataset.col = c;
-      const s = columnSum(c);
-      sum.textContent = s;
-      sum.classList.add(s === config.target ? 'correct' : 'wrong');
-      grid.appendChild(sum);
-    }
-
-    boardEl.appendChild(grid);
-    updateProgress();
   }
 
-  function rotate(b) {
+  function onNumberClick(n, btn, evt) {
     if (gameState !== 'playing') return;
-    rotations[b] = (rotations[b] + 1) % 4;
-    moves++;
-    // update that block's faces + all sums
-    for (let c = 0; c < 4; c++) {
-      const faceEl = boardEl.querySelector(`.face[data-block="${b}"][data-col="${c}"]`);
-      if (faceEl) {
-        faceEl.textContent = faceAt(b, c);
-        faceEl.classList.remove('visible-shift');
-        // reflow + re-add for re-animation
-        void faceEl.offsetWidth;
-        faceEl.classList.add('visible-shift');
+    if (btn.classList.contains('done')) return;
+
+    if (n === target) {
+      btn.classList.add('done');
+      target--;
+      if (target === 0) { win(); return; }
+      updateTarget();
+    } else {
+      mistakes++;
+      btn.classList.add('wrong');
+      setTimeout(() => btn.classList.remove('wrong'), 400);
+
+      if (config.penalty === 'lockin') {
+        lose('Lock-in! Wrong number clicked.');
+      } else if (config.penalty === '5s') {
+        penaltyTotal += 5;
+        showPenaltyFlash(btn, '+5s');
       }
+      // 'none' — no penalty
     }
-    for (let c = 0; c < 4; c++) {
-      const sumEl = boardEl.querySelector(`.sum-cell[data-col="${c}"]`);
-      if (sumEl) {
-        const s = columnSum(c);
-        sumEl.textContent = s;
-        sumEl.classList.toggle('correct', s === config.target);
-        sumEl.classList.toggle('wrong',   s !== config.target);
-      }
-    }
-    updateProgress();
-    if (isSolved()) win();
   }
 
-  function updateProgress() {
-    const correctSides = [0,1,2,3].filter(c => columnSum(c) === config.target).length;
-    progressMeta.textContent = `${correctSides} / 4 sides · ${moves} move${moves === 1 ? '' : 's'}`;
+  function showPenaltyFlash(btn, text) {
+    const rect = btn.getBoundingClientRect();
+    const el = document.createElement('div');
+    el.className = 'penalty-flash';
+    el.textContent = text;
+    el.style.left = (rect.left + rect.width / 2) + 'px';
+    el.style.top = rect.top + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 800);
+  }
+
+  function updateTarget() {
+    targetLabel.textContent = 'Click';
+    targetNum.textContent = target;
+    targetNum.classList.remove('done');
+    progressMeta.textContent = `${config.max - target} / ${config.max} · Mistakes: ${mistakes}`;
   }
 
   function win() {
     gameState = 'over';
     timer.stop();
-    GameFramework.sfx.win();
-    const configKey = `b${config.blocks}`;
-    const result = window.GameFramework.recordWin('number-tower', timer.elapsed, configKey);
+    const finalTime = timer.elapsed + penaltyTotal;
+    const configKey = `max${config.max}-${config.penalty}`;
+    const result = window.GameFramework.recordWin('number-rush', finalTime, configKey);
     const newBest = result.isNewBest ? '<span class="new-best">NEW BEST</span>' : '';
-    statusEl.innerHTML = `Tower balanced in ${moves} move${moves === 1 ? '' : 's'} · ${window.GameFramework.formatTime(timer.elapsed)} ${newBest}`;
-    // disable rotate buttons
-    boardEl.querySelectorAll('.rotate-btn').forEach(b => b.disabled = true);
+    const penaltyText = penaltyTotal > 0 ? ` (incl. +${penaltyTotal}s penalty)` : '';
+    statusEl.innerHTML = `Cleared in ${window.GameFramework.formatTime(finalTime)}${penaltyText} · ${mistakes} mistake${mistakes === 1 ? '' : 's'} ${newBest}`;
+    targetNum.textContent = '✓';
+    targetNum.classList.add('done');
+    targetLabel.textContent = 'Done';
+    progressMeta.textContent = `${config.max} / ${config.max} · Mistakes: ${mistakes}`;
     showPostGameControls();
+  }
+
+  function lose(reason) {
+    gameState = 'over';
+    timer.stop();
+    statusEl.textContent = `${reason} Got to ${config.max - target} / ${config.max}.`;
+    targetLabel.textContent = 'Locked';
+    showPostGameControls();
+  }
+
+  function timeUp() {
+    if (gameState !== 'playing') return;
+    lose("Time's up!");
   }
 
   function showPostGameControls() {
@@ -454,9 +394,9 @@ return{click:function(){tone(660,'square',0.06,0,0.04);},win:function(){tone(523
   function resetToIdle() {
     if (timer) timer.reset();
     gameState = 'idle';
-    blocks = [];
-    rotations = [];
-    moves = 0;
+    target = 0;
+    mistakes = 0;
+    penaltyTotal = 0;
 
     settingsEl.classList.remove('locked');
     startBtn.classList.remove('hidden');
@@ -465,6 +405,10 @@ return{click:function(){tone(660,'square',0.06,0,0.04);},win:function(){tone(523
 
     boardEl.innerHTML = '<div class="idle-msg">Press <b>Start Game</b> to begin</div>';
     boardEl.classList.add('idle');
+    boardEl.style.gridTemplateColumns = '';
+    targetLabel.textContent = 'Ready';
+    targetNum.textContent = '—';
+    targetNum.classList.remove('done');
     progressMeta.textContent = 'Not started';
     timerDisplay.textContent = '00:00';
     statusEl.textContent = '';

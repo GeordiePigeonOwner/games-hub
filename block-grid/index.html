@@ -96,6 +96,9 @@ function injectBackLink(h){const a=document.createElement('a');a.className='back
 return{formatTime:formatTime,createTimer:createTimer,recordWin:recordWin,injectBackLink:injectBackLink};
 })();
 GameFramework.injectBackLink();
+GameFramework.sfx=(function(){let ctx=null;function ac(){try{if(!ctx){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;ctx=new A();}if(ctx.state==='suspended')ctx.resume();return ctx;}catch(e){return null;}}
+function tone(f,ty,dur,del,vol){const c=ac();if(!c)return;try{const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+(del||0);o.type=ty;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+0.015);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+0.05);}catch(e){}}
+return{click:function(){tone(660,'square',0.06,0,0.04);},win:function(){tone(523.25,'sine',0.16,0,0.1);tone(659.25,'sine',0.16,0.11,0.1);tone(783.99,'sine',0.28,0.22,0.1);},lose:function(){tone(330,'sine',0.18,0,0.08);tone(247,'sine',0.3,0.15,0.08);}};})();
 </script>
 
   <h1>Block Grid</h1>
@@ -107,6 +110,13 @@ GameFramework.injectBackLink();
       <button class="pill active" data-size="5">5 × 5</button>
       <button class="pill" data-size="7">7 × 7</button>
       <button class="pill" data-size="10">10 × 10</button>
+    </div>
+
+    <label>Density:</label>
+    <div class="pill-group" id="densityToggle">
+      <button class="pill" data-density="easy">Easy</button>
+      <button class="pill active" data-density="normal">Normal</button>
+      <button class="pill" data-density="dense">Dense</button>
     </div>
   </div>
 
@@ -153,9 +163,19 @@ GameFramework.injectBackLink();
     });
   });
 
-  function generateTarget(n) {
-    // Density: 5x5 ~ 55%, 7x7 ~ 50%, 10x10 ~ 48% — tuned for interest
-    const density = n <= 5 ? 0.55 : (n <= 7 ? 0.5 : 0.48);
+  // Fill density of the target picture: Easy ~40%, Normal ~50%, Dense ~60%.
+  const DENSITIES = { easy: 0.4, normal: 0.5, dense: 0.6 };
+  const densityToggle = $('densityToggle');
+  let currentDensity = 'normal';
+  densityToggle.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      if (gameState === 'playing') return;
+      currentDensity = b.dataset.density;
+      densityToggle.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+    });
+  });
+
+  function generateTarget(n, density) {
     const g = Array.from({length:n}, () =>
       Array.from({length:n}, () => Math.random() < density));
     // ensure at least one cell filled in each row/col — retry if not
@@ -181,7 +201,7 @@ GameFramework.injectBackLink();
 
   function startGame() {
     size = currentSize;
-    target = generateTarget(size);
+    target = generateTarget(size, DENSITIES[currentDensity] || 0.5);
     state = Array.from({length:size}, () => Array(size).fill(0));
     rowClues = target.map(row => cluesForLine(row));
     colClues = [];
@@ -310,7 +330,8 @@ GameFramework.injectBackLink();
 
   function win() {
     gameState = 'over'; timer.stop();
-    const configKey = `${size}x${size}`;
+    GameFramework.sfx.win();
+    const configKey = `${size}x${size}-${currentDensity}`;
     const res = window.GameFramework.recordWin('block-grid', timer.elapsed, configKey);
     const nb = res.isNewBest ? '<span class="new-best">NEW BEST</span>' : '';
     statusEl.innerHTML = `Grid solved in ${window.GameFramework.formatTime(timer.elapsed)} ${nb}`;

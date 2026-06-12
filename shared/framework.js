@@ -124,6 +124,53 @@
     return { isNewBest, bestSeconds: all[key].bestSeconds };
   }
 
+  // ---- Sound effects ----
+  // Tiny WebAudio synth tones. The AudioContext is created lazily on first
+  // call (which should come from a user-gesture handler such as a click),
+  // and everything fails silently if audio is unavailable.
+  let audioCtx = null;
+  function getAudioCtx() {
+    try {
+      if (!audioCtx) {
+        const AC = global.AudioContext || global.webkitAudioContext;
+        if (!AC) return null;
+        audioCtx = new AC();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    } catch { return null; }
+  }
+  function tone(freq, type, dur, delay, vol) {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const t = ctx.currentTime + (delay || 0);
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.linearRampToValueAtTime(vol, t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + dur + 0.05);
+    } catch {}
+  }
+  const sfx = {
+    click() { tone(660, 'square', 0.06, 0, 0.04); },
+    win() {
+      tone(523.25, 'sine', 0.16, 0,    0.1);
+      tone(659.25, 'sine', 0.16, 0.11, 0.1);
+      tone(783.99, 'sine', 0.28, 0.22, 0.1);
+    },
+    lose() {
+      tone(330, 'sine', 0.18, 0,    0.08);
+      tone(247, 'sine', 0.30, 0.15, 0.08);
+    },
+  };
+
   // ---- Back-to-menu link ----
   // Inject a small "← Menu" link at the top-left of any game page.
   // Relies on the file structure: GamesCreation/<game>/index.html and GamesCreation/index.html
@@ -144,5 +191,6 @@
     recordWin,
     loadRecords,
     injectBackLink,
+    sfx,
   };
 })(window);
