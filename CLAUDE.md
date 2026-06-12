@@ -38,13 +38,13 @@ games are faithful clones of TV game shows, playable online with workmates (team
 | Game | State |
 |---|---|
 | **blockbusters** | ✅ Rebuilt as **Blockbusters Live** — online multiplayer (PeerJS), 1983–93 ITV rules. Deployed & live. |
-| **the-wall** | ⚠️ Single-player plinko, NOT show-accurate. **Rebuild commissioned — full spec below. Not started.** |
-| **countdown** | ⚠️ Misnamed: it's a "click 1–100 in order" game, not the TV show. **Rebuild commissioned — spec below. Not started.** |
-| mastermind, planet-order, stop-clock, symbol-wheels, number-tower, numeral-grid, tube-spectrum, synonym-dominoes, word-chain, pipework, block-grid | ✅ Working. Just received a bug-fix + content pass (see below) — **changes are local-only, NOT yet pushed or fully syntax-verified.** |
+| **the-wall** | ✅ Rebuilt 2026-06-12 as **The Wall Live** — show-accurate UK rules, solo practice + online pair co-op (PeerJS, prefix `twhx26-`). Logic verified headlessly (3000 sim games + deterministic edge tests). Deployed. **Needs a 2-device smoke test.** Spec kept below for reference. |
+| **countdown** | ⚠️ Misnamed: it's a "click 1–100 in order" game, not the TV show. **Rebuild commissioned — spec below. Not started.** (Note: `number-rush/` folder already exists — old click game copied & retitled; hub entry for it still missing.) |
+| mastermind, planet-order, stop-clock, symbol-wheels, number-tower, numeral-grid, tube-spectrum, synonym-dominoes, word-chain, pipework, block-grid | ✅ Working. Bug-fix + content pass verified (`node --check` all script blocks + synonym-dominoes dup check) and **pushed 2026-06-12**. |
 
-### Just-completed work (UNPUSHED, needs verification before deploy)
+### Bug/content pass (verified + pushed 2026-06-12)
 
-A bug/content pass modified `shared/framework.js` + 11 game files:
+For reference — modified `shared/framework.js` + 11 game files:
 - number-tower: bounded the rotation-scramble loop (was potentially infinite).
 - tube-spectrum: count-only vs positional feedback now actually differ; added 4 colour themes (Spectrum, Warm→Cool, Ocean, Sunset) in settings.
 - word-chain: CHAINS grown 20→70 (manually validated).
@@ -53,8 +53,33 @@ A bug/content pass modified `shared/framework.js` + 11 game files:
 - All 11 games + framework: `GameFramework.sfx` WebAudio win/lose sounds (lazy AudioContext, fail-silent). NOTE: games inline their own GameFramework copy — shared/framework.js is NOT actually loaded by them; the sfx snippet was appended per-file.
 - Audit claims checked and found NOT to be bugs (don't "re-fix"): hub getBestAcrossConfigs logic; mastermind unique-mode feedback; word-chain selection off-by-one.
 
-**First job on the new PC:** run `node --check` on every modified file's script blocks (the laptop's
-sandbox ran out of disk before verification), then commit + push everything.
+### New-PC mount quirk (discovered 2026-06-12)
+
+The sandbox's FUSE view of the mounted drive can serve **stale file attributes** after Claude's
+file tools modify an existing file: size/mtime stay cached, so sandbox reads come back truncated
+at the old length. New files sync fine. **Fix:** in the sandbox, `mv file tmp && mv tmp file`
+(rename invalidates the cache), then re-read. Check `wc -c` against expectations before trusting
+a freshly edited file in the sandbox. `.git` directly on the mount remains untested on this PC.
+Also: the sandbox cannot `rm` files on the mount (Operation not permitted) — use rsync excludes
+or delete from the Windows side.
+
+## The Wall Live — how it works (reference)
+
+- `the-wall/index.html` single file. Landing offers: **Solo practice** (one screen, both roles, no
+  isolation), **Host a wall** (host screen = the wall, shared on TV/call), **Join** (phone, 5-char code,
+  `#CODE` URL prefill). Roles in lobby: **At the Wall** (picks drop zones) and **In the Booth**
+  (answers; isolated from R2 — their client is never *sent* bank/results/zones: enforcement is
+  host-side in `viewFor()`, not CSS). Seat reclaim on rejoin by name, like Blockbusters.
+- Pure game flow lives between `/* ===LOGIC=== */` markers (`newFlow` + `Flow` event machine: no
+  DOM/timers/network) — extractable for headless tests. Test harness used: 3000 random full games
+  (bank-floor, bank-math recompute, ball counts, termination) + deterministic reds-skip/contract test.
+- Physics: multi-ball canvas plinko (W=900, 7 zones, 15 slots, per-ball gravity — R1 balls fall
+  slower, g=0.13, + 1.6s reading delay before release so there's time to answer).
+- Rules implemented: R1 Free Fall 5×2-choice (3 auto balls zones 1/4/7, lock before first landing
+  or red); R2 2 free greens → 3×3-choice (zone picked blind seeing only choices, Double Up Q2,
+  Triple Up Q3) → 2 mandatory reds from green zones (skip if bank < £3); R3 3 free greens (one at a
+  time) → 3×4-choice → contract (booth signs/rips BLIND before reds; sign = R1 total + £2,500 ×
+  correct R2/R3 answers) → 3 reds → reveal. Bank floors at £0. Banks: QB2×30, QB3×27, QB4×30 inline.
 
 ## Blockbusters Live — how it works (reference)
 
@@ -63,7 +88,7 @@ sandbox ran out of disk before verification), then commit + push everything.
 - First buzz locks the question to that team only; wrong → automatic steal offer; both wrong → new Q same letter. £5/correct. Best-of-3 match (Jon confirmed keeping this) → winner nominated to **Gold Run**: 60s, initials clues, pass = black blocking hex, £10/gold consolation, £200 on completion. Host has override judge buttons + "End match → Gold Run".
 - Question banks inline: QBANK 24 letters × 14 = 336; GOLDBANK 73. Logic block between `/* ===LOGIC=== */` markers is extractable for headless tests (adjacency, BFS win-path, no-tie verified over 2000 random boards, fuzzy matcher).
 
-## COMMISSIONED: The Wall rebuild (full spec, researched from UK BBC show)
+## The Wall — original commissioned spec (DONE 2026-06-12, kept for reference)
 
 Jon's ask: show-accurate, **online pair co-op + solo practice mode** (chosen via AskUserQuestion).
 Keep the existing canvas physics (they're good); replace the game flow. PeerJS like Blockbusters
@@ -98,15 +123,11 @@ Researched rules (Wikipedia UK + UKGameshows):
 - Sponsor button: `.github/FUNDING.yml` pushed (PayPal donate link for minigpo@gmail.com). Button
   only appears once Jon ticks Settings → Features → **Sponsorships** on the repo (no API for this).
   If Jon makes a PayPal.Me handle, swap the link in FUNDING.yml.
-- Blockbusters needs a 2-device smoke test before the team social (untested over real WebRTC).
+- Blockbusters AND The Wall need 2-device smoke tests before the team social (untested over real WebRTC).
 - Jon's preferences: concise replies; he's a senior software engineer; ask before big scope changes
   (AskUserQuestion), show-accuracy matters a lot to him on the TV-show games.
 
 ## Suggested next-session order
 
-1. Verify the unpushed bug/content pass (`node --check` script blocks), fix anything broken.
-2. Commit + push everything (get fresh PAT from Jon; remember rsync workflow + noreply email if the
-   .git-on-mount problem recurs on the new PC — test `git init` directly first, it may just work there).
-3. Rebuild The Wall per spec above.
-4. Rebuild Countdown + Number Rush per spec above.
-5. Update hub entries, deploy, smoke-test on the live site.
+1. Rebuild Countdown per spec above; add the missing number-rush hub entry (ILLO + GAMES).
+2. Update hub entries, deploy, smoke-test Blockbusters + The Wall on the live site (2 devices).
